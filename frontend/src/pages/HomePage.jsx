@@ -48,6 +48,10 @@ import {
   RefreshCw,
   Sparkles,
   ArrowRight,
+  Code2,
+  Server,
+  Database,
+  Boxes,
 } from "lucide-react";
 import bgImage from "../assets/crm-brand-bg.jpg";
 import demoMacbook from "../assets/demo-macbook.png";
@@ -408,6 +412,33 @@ const MODULE_FEATURES = [
   },
 ];
 
+const PROJECT_STACK = [
+  {
+    icon: Code2,
+    title: "Frontend",
+    description:
+      "Vite, React 19, Redux Toolkit, and Tailwind power responsive dashboards for every role—from super admin to student.",
+  },
+  {
+    icon: Server,
+    title: "Backend API",
+    description:
+      "Express 5 REST services with JWT sessions, validation, and middleware that mirror the same RBAC you see in the UI.",
+  },
+  {
+    icon: Database,
+    title: "Data layer",
+    description:
+      "MongoDB and Mongoose models keep schools, users, fees, academics, and files organized in one coherent schema.",
+  },
+  {
+    icon: Boxes,
+    title: "ERP-MODEL monorepo",
+    description:
+      "This School ERP ships as a full-stack codebase: extend modules, wire new reports, or plug in S3-backed uploads where you need them.",
+  },
+];
+
 const DEMO_ROLES = [
   { value: "", label: "— Please choose an option —" },
   { value: "super_admin", label: "Super Admin" },
@@ -534,6 +565,56 @@ function HomePage() {
           </div>
         </div>
       </main>
+
+      <section
+        id="about-project"
+        className="relative z-20 scroll-mt-20 border-b border-gray-200/80 bg-white py-14 sm:py-20"
+        aria-labelledby="about-project-heading"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">
+              ERP-MODEL
+            </p>
+            <h2
+              id="about-project-heading"
+              className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            >
+              This project, under the hood
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-gray-600 sm:text-base">
+              NexusCRM on the home page is the product story;{" "}
+              <span className="font-semibold text-gray-800">ERP-MODEL</span> is the repository that
+              implements it—a school management system with separate frontend and backend apps,
+              shared conventions, and room to grow.
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PROJECT_STACK.map(({ icon: Icon, title, description }) => (
+              <article
+                key={title}
+                className="flex flex-col rounded-2xl border border-gray-100 bg-gradient-to-b from-gray-50/80 to-white p-6 shadow-sm ring-1 ring-gray-100/80 transition hover:border-brand-200/70 hover:shadow-md hover:shadow-brand-500/5"
+              >
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-brand-100/80">
+                  <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                </div>
+                <h3 className="mt-4 text-base font-bold text-gray-900">{title}</h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-gray-600">{description}</p>
+              </article>
+            ))}
+          </div>
+
+          <p className="mx-auto mt-10 max-w-2xl text-center text-sm text-gray-500">
+            Developers clone the repo, run the API and SPA locally, and iterate on the same modules
+            surfaced in{" "}
+            <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">
+              the live dashboards
+            </Link>
+            —no separate “demo-only” fork required.
+          </p>
+        </div>
+      </section>
 
       <section
         id="erp-modules"
