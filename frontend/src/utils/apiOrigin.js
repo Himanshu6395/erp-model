@@ -1,7 +1,8 @@
-/** Base origin for static files (e.g. /uploads) when API is mounted at /api */
+import { BASE_URL } from "../config/api";
+
+/** Base origin for static files (e.g. /uploads); same host as API, without /api */
 export function getApiOrigin() {
-  const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-  return base.replace(/\/api\/?$/, "") || "http://localhost:5000";
+  return BASE_URL;
 }
 
 export function resolveUploadUrl(pathOrUrl) {
