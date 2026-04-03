@@ -1,5 +1,5 @@
 import { FaSignOutAlt } from "react-icons/fa";
-import { Sparkles } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 import { useAuth } from "../context/useAuth";
 
 function formatRole(role) {
@@ -10,15 +10,26 @@ function formatRole(role) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function Navbar() {
+function Navbar({ onOpenMobileNav, mobileNavOpen }) {
   const { user, logout } = useAuth();
 
   return (
     <header className="fixed left-0 right-0 top-0 z-40 border-b border-gray-200/80 bg-white/85 px-4 shadow-[0_4px_24px_-8px_rgba(15,23,42,0.12)] backdrop-blur-md md:left-64 md:px-6">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-200/60 to-transparent" />
 
-      <div className="relative flex h-[4.25rem] items-center justify-between gap-4">
-        <div className="min-w-0 flex-1">
+      <div className="relative flex h-[4.25rem] items-center justify-between gap-3 md:gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <button
+            type="button"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-800 shadow-sm transition hover:bg-gray-50 md:hidden"
+            aria-label="Open navigation menu"
+            aria-expanded={Boolean(mobileNavOpen)}
+            aria-controls="dashboard-sidebar"
+            onClick={() => onOpenMobileNav?.()}
+          >
+            <Menu className="h-5 w-5" aria-hidden />
+          </button>
+          <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-brand-600/90">
             <Sparkles className="h-3 w-3 shrink-0" aria-hidden />
             Dashboard
@@ -29,6 +40,7 @@ function Navbar() {
               {user?.name || "User"}
             </span>
           </h1>
+          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
