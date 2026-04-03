@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { FaChalkboardTeacher, FaGraduationCap, FaSchool } from "react-icons/fa";
 import {
@@ -107,32 +108,80 @@ const menuByRole = {
   ],
 };
 
-function Sidebar({ role }) {
+function Sidebar({ role, mobileOpen, onClose }) {
   const menu = menuByRole[role] || [];
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen, onClose]);
+
   return (
-    <aside className="hide-scrollbar hidden h-screen w-64 overflow-y-auto bg-gray-900 px-4 py-6 text-gray-200 md:fixed md:left-0 md:top-0 md:z-50 md:block">
-      <Link to="/" className="mb-6 block text-lg font-bold tracking-wide text-white">
-        School ERP
-      </Link>
-      <nav className="space-y-2">
-        {menu.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/super-admin" || item.to === "/admin" || item.to === "/student" || item.to === "/teacher"}
-            className={({ isActive }) =>
-              `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
-                isActive ? "bg-brand-600 text-white" : "hover:bg-gray-800"
-              }`
-            }
+    <>
+      <button
+        type="button"
+        className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-200 md:hidden ${
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        aria-label="Close menu"
+        tabIndex={mobileOpen ? 0 : -1}
+        onClick={onClose}
+      />
+
+      <aside
+        id="dashboard-sidebar"
+        className={`hide-scrollbar fixed left-0 top-0 z-[60] h-screen w-64 overflow-y-auto border-r border-gray-800 bg-gray-900 px-4 py-6 text-gray-200 transition-transform duration-200 ease-out md:translate-x-0 ${
+          mobileOpen ? "translate-x-0 shadow-xl" : "-translate-x-full md:shadow-none"
+        }`}
+      >
+        <div className="mb-6 flex items-center justify-between gap-2">
+          <Link
+            to="/"
+            className="block text-lg font-bold tracking-wide text-white"
+            onClick={onClose}
           >
-            <span className="text-base">{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </aside>
+            School ERP
+          </Link>
+          <button
+            type="button"
+            className="rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white md:hidden"
+            aria-label="Close sidebar"
+            onClick={onClose}
+          >
+            <span className="text-xl leading-none" aria-hidden>
+              ×
+            </span>
+          </button>
+        </div>
+        <nav className="space-y-2">
+          {menu.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={
+                item.to === "/super-admin" ||
+                item.to === "/admin" ||
+                item.to === "/student" ||
+                item.to === "/teacher"
+              }
+              onClick={onClose}
+              className={({ isActive }) =>
+                `flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                  isActive ? "bg-brand-600 text-white" : "hover:bg-gray-800"
+                }`
+              }
+            >
+              <span className="text-base">{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }
 
