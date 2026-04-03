@@ -5,7 +5,6 @@ import { LANDING_PRIMARY_LINKS } from "../data/landingNav";
 
 function LandingHeader() {
   const [navOpen, setNavOpen] = useState(false);
-  console.log("fnjndffbbhbdfj")
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-gradient-to-r from-gray-950/90 via-gray-900/88 to-gray-950/90 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] backdrop-blur-xl">
       <div

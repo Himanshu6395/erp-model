@@ -23,6 +23,7 @@ import {
   MdWork,
   MdLink,
   MdEventBusy,
+  MdCampaign,
 } from "react-icons/md";
 
 const menuByRole = {
@@ -37,10 +38,11 @@ const menuByRole = {
     { to: "/super-admin/security-dashboard", label: "Security Dashboard", icon: <MdSecurity /> },
     { to: "/super-admin/login-activity", label: "Login Activity", icon: <MdAssessment /> },
     { to: "/super-admin/blocked-schools", label: "Blocked Schools", icon: <MdOutlineReportProblem /> },
+    { to: "/super-admin/global-announcement", label: "Global announcement", icon: <MdCampaign /> },
   ],
   SCHOOL_ADMIN: [
     { to: "/admin", label: "Dashboard", icon: <MdDashboard /> },
-    { to: "/admin/create-student", label: "Student Management", icon: <FaGraduationCap /> },
+    { to: "/admin/students", label: "Student Management", icon: <FaGraduationCap /> },
     { to: "/admin/create-teacher", label: "Teacher Management", icon: <FaChalkboardTeacher /> },
     { to: "/admin/create-class", label: "Class & Section", icon: <MdClass /> },
     { to: "/admin/subjects", label: "Subjects", icon: <MdMenuBook /> },

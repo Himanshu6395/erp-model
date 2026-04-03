@@ -25,12 +25,24 @@ router.get("/reports/analytics", catchAsync(adminController.getAnalyticsReport))
 router.post(
   "/students",
   [
-    body("name").trim().notEmpty(),
+    body("name").optional().trim().notEmpty(),
+    body("fullName").optional().trim().notEmpty(),
+    body().custom((_, { req }) => {
+      const n = String(req.body.name || req.body.fullName || "").trim();
+      if (!n) throw new Error("name or fullName is required");
+      return true;
+    }),
     body("email").isEmail(),
     body("password").isLength({ min: 6 }),
     body("classId").notEmpty().withMessage("classId is required").bail().isMongoId(),
     body("section").trim().notEmpty(),
     body("rollNumber").trim().notEmpty(),
+    body("feeStructureId").optional().isMongoId(),
+    body("feeAssignManualDiscount").optional().isFloat({ min: 0 }),
+    body("feeAssignDueDate").optional().isISO8601(),
+    body("status").optional().isIn(["ACTIVE", "INACTIVE", "PASSED", "TRANSFERRED"]),
+    body("gender").optional().isIn(["MALE", "FEMALE", "OTHER"]),
+    body("category").optional().isString(),
   ],
   validateRequest,
   catchAsync(adminController.createStudent)

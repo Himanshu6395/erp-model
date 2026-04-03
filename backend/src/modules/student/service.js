@@ -220,25 +220,39 @@ const getStudentProfile = async (user) => {
       ? Number((results.reduce((sum, row) => sum + row.marks, 0) / results.length).toFixed(2))
       : 0,
   };
-  return { ...student.toObject(), attendanceSummary, performanceSummary };
+  const feeSummary = await computeFeeSummaryForStudent(user.schoolId, student._id);
+  return { ...student.toObject(), attendanceSummary, performanceSummary, feeSummary };
 };
 
 const updateStudentProfile = async (user, payload) => {
   const student = await getLoggedInStudent(user);
+  const phoneVal =
+    payload.phone !== undefined || payload.mobileNumber !== undefined
+      ? String(payload.phone ?? payload.mobileNumber ?? "").trim()
+      : undefined;
+
   await studentRepository.updateUserById({
     userId: student.userId?._id || user.userId,
     payload: {
       ...(payload.name ? { name: payload.name } : {}),
-      ...(payload.phone ? { phone: payload.phone } : {}),
+      ...(phoneVal !== undefined ? { phone: phoneVal } : {}),
     },
   });
+
   return studentRepository.updateStudentById({
     schoolId: user.schoolId,
     studentId: student._id,
     payload: {
+      ...(phoneVal !== undefined ? { phone: phoneVal } : {}),
       ...(payload.address !== undefined ? { address: payload.address } : {}),
       ...(payload.parentPhone !== undefined ? { parentPhone: payload.parentPhone } : {}),
       ...(payload.profileImage !== undefined ? { profileImage: payload.profileImage } : {}),
+      ...(payload.alternatePhone !== undefined || payload.alternateMobile !== undefined
+        ? { alternatePhone: payload.alternatePhone ?? payload.alternateMobile ?? "" }
+        : {}),
+      ...(payload.city !== undefined ? { city: payload.city } : {}),
+      ...(payload.state !== undefined ? { state: payload.state } : {}),
+      ...(payload.pincode !== undefined ? { pincode: payload.pincode } : {}),
     },
   });
 };
