@@ -6,6 +6,8 @@ backend/node_modules
 # Environment files
 .env
 backend/.env
+# Tracked: single toggle file for VITE_API_URL (local vs prod — see file header)
+!frontend/.env
 
 # Build folders
 dist
