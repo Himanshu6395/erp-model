@@ -52,6 +52,8 @@ import {
   Server,
   Database,
   Boxes,
+  Backpack,
+  MapPin,
 } from "lucide-react";
 import bgImage from "../assets/crm-brand-bg.jpg";
 import demoMacbook from "../assets/demo-macbook.png";
@@ -439,6 +441,40 @@ const PROJECT_STACK = [
   },
 ];
 
+const PLATFORM_OVERVIEW_FEATURES = [
+  {
+    icon: Backpack,
+    title: "Admission With Easy Steps",
+    description:
+      "Simplified enrollment—streamlined process for hassle-free admission.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Mark Attendance Easily",
+    description:
+      "Effortless attendance—simplifying the process for seamless record-keeping.",
+  },
+  {
+    icon: MapPin,
+    title: "Real-time School Bus Tracking",
+    description:
+      "Effortless security—real-time school bus tracking for peace of mind.",
+  },
+  {
+    icon: FileText,
+    title: "Save & Share Document With Staff Member",
+    description:
+      "Effortless secure your records and documents with document drive.",
+  },
+];
+
+const PLATFORM_OVERVIEW_STATS = [
+  { number: "200", accent: "+", label: "SCHOOLS" },
+  { number: "75.5k", accent: "+", label: "STUDENTS" },
+  { number: "24/7", accent: "+", label: "OUR SUPPORT" },
+  { number: "13", accent: "+", label: "STATES" },
+];
+
 const DEMO_ROLES = [
   { value: "", label: "— Please choose an option —" },
   { value: "super_admin", label: "Super Admin" },
@@ -565,6 +601,86 @@ function HomePage() {
           </div>
         </div>
       </main>
+
+      <section
+        id="platform-overview"
+        className="relative z-20 scroll-mt-20 border-b border-gray-200/80 bg-white py-14 sm:py-20 lg:py-24"
+        aria-labelledby="platform-overview-heading"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-12 lg:grid lg:grid-cols-2 lg:items-center lg:gap-14 xl:gap-20">
+            <div className="order-2 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:order-1">
+              {PLATFORM_OVERVIEW_FEATURES.map(({ icon: Icon, title, description }) => (
+                <article
+                  key={title}
+                  className="rounded-2xl border border-gray-200/90 bg-white p-5 shadow-sm transition hover:border-orange-200/80 hover:shadow-md sm:p-6"
+                >
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-600 ring-1 ring-orange-100/80"
+                    aria-hidden
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </div>
+                  <h3 className="mt-4 text-base font-bold leading-snug text-gray-900 sm:text-[1.05rem]">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-600">{description}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className="order-1 lg:order-2">
+              <h2
+                id="platform-overview-heading"
+                className="text-3xl font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl lg:text-[2.15rem] lg:leading-snug xl:text-[2.35rem]"
+              >
+                Simplify{" "}
+                <span className="text-orange-500">School</span> Administration with Trustable and
+                One Smart Platform with{" "}
+                <span className="text-orange-500">70+</span> Features
+              </h2>
+              <p className="mt-5 text-sm leading-relaxed text-gray-600 sm:text-base">
+                Our School Management System helps institutions handle student records, attendance,
+                fees, communication, and day-to-day operations from one dashboard—so administrators
+                save time, reduce paperwork, and keep parents and staff aligned without juggling
+                spreadsheets or disconnected tools.
+              </p>
+              <Link
+                to="/demo"
+                className="mt-8 inline-flex items-center justify-center rounded-full border-2 border-orange-500 bg-white px-8 py-2.5 text-sm font-semibold text-orange-600 shadow-sm transition hover:bg-orange-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500"
+              >
+                Request Demo
+              </Link>
+
+              <div
+                className="mt-10 grid grid-cols-2 gap-y-8 border-t border-gray-200 pt-10 sm:grid-cols-4 sm:gap-6 lg:mt-12 lg:pt-12"
+                role="list"
+                aria-label="Platform statistics"
+              >
+                {PLATFORM_OVERVIEW_STATS.map((stat, idx) => (
+                  <div
+                    key={stat.label}
+                    role="listitem"
+                    className={`relative text-center sm:text-left ${
+                      idx > 0
+                        ? "before:absolute before:left-0 before:top-1/2 before:hidden before:h-10 before:w-px before:-translate-y-1/2 before:bg-gray-200 sm:before:block sm:pl-6"
+                        : ""
+                    }`}
+                  >
+                    <p className="text-2xl font-bold tabular-nums text-gray-900 sm:text-3xl">
+                      {stat.number}
+                      <span className="text-orange-500">{stat.accent}</span>
+                    </p>
+                    <p className="mt-1 text-[0.65rem] font-semibold uppercase tracking-wide text-gray-500 sm:text-xs">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section
         id="about-project"
