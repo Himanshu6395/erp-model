@@ -29,8 +29,11 @@ import PaymentsPage from "../pages/superAdmin/Payments";
 import SecurityDashboardPage from "../pages/superAdmin/SecurityDashboard";
 import LoginActivityPage from "../pages/superAdmin/LoginActivity";
 import BlockedSchoolsPage from "../pages/superAdmin/BlockedSchools";
+import GlobalAnnouncementPage from "../pages/superAdmin/GlobalAnnouncement";
 import AdminDashboard from "../pages/admin/Dashboard";
+import AdminStudentManagementLayout from "../layouts/AdminStudentManagementLayout";
 import CreateStudentPage from "../pages/admin/CreateStudent";
+import RegisteredStudentsPage from "../pages/admin/RegisteredStudents";
 import CreateTeacherPage from "../pages/admin/CreateTeacher";
 import CreateClassPage from "../pages/admin/CreateClass";
 import NoticeManagementPage from "../pages/admin/NoticeManagement";
@@ -141,13 +144,19 @@ function AppRoutes() {
           <Route path="/super-admin/security-dashboard" element={<SecurityDashboardPage />} />
           <Route path="/super-admin/login-activity" element={<LoginActivityPage />} />
           <Route path="/super-admin/blocked-schools" element={<BlockedSchoolsPage />} />
+          <Route path="/super-admin/global-announcement" element={<GlobalAnnouncementPage />} />
         </Route>
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={[roles.SCHOOL_ADMIN]} />}>
         <Route element={<DashboardLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/create-student" element={<CreateStudentPage />} />
+          <Route path="/admin/students" element={<AdminStudentManagementLayout />}>
+            <Route index element={<Navigate to="enrol" replace />} />
+            <Route path="enrol" element={<CreateStudentPage />} />
+            <Route path="registered" element={<RegisteredStudentsPage />} />
+          </Route>
+          <Route path="/admin/create-student" element={<Navigate to="/admin/students/enrol" replace />} />
           <Route path="/admin/create-teacher" element={<CreateTeacherPage />} />
           <Route path="/admin/create-class" element={<CreateClassPage />} />
           <Route path="/admin/subjects" element={<SubjectManagementPage />} />

@@ -29,6 +29,110 @@ const toDate = (value) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
+const normalizeStudentDocuments = (input) => {
+  if (!Array.isArray(input)) return [];
+  return input
+    .map((item) => {
+      if (typeof item === "string") {
+        const u = item.trim();
+        return u ? { name: "Document", url: u } : null;
+      }
+      if (item && typeof item === "object") {
+        const url = String(item.url || item.documentUrl || "").trim();
+        const name = String(item.name || item.documentName || "").trim();
+        return url ? { name: name || "Document", url } : null;
+      }
+      return null;
+    })
+    .filter(Boolean);
+};
+
+const generateStudentCode = async (schoolId) => {
+  const school = await School.findById(schoolId).select("code").lean();
+  const prefix = String(school?.code || "STU")
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .slice(0, 8);
+  const n = await adminRepository.countStudents({ schoolId });
+  return `${prefix}-${String(n + 1).padStart(5, "0")}`;
+};
+
+const studentExtendedFieldsForCreate = (payload) => {
+  const parentName =
+    payload.parentName || payload.fatherName || payload.guardianName || "";
+  return {
+    phone: payload.phone || payload.mobileNumber || "",
+    alternatePhone: payload.alternateMobile || payload.alternatePhone || "",
+    gender: payload.gender || "OTHER",
+    dateOfBirth: toDate(payload.dateOfBirth),
+    address: payload.address || "",
+    city: payload.city || "",
+    state: payload.state || "",
+    pincode: payload.pincode || "",
+    admissionDate: toDate(payload.admissionDate),
+    admissionNumber: payload.admissionNumber || "",
+    parentName,
+    fatherName: payload.fatherName || "",
+    motherName: payload.motherName || "",
+    guardianName: payload.guardianName || "",
+    parentPhone: payload.parentPhone || payload.parentMobile || "",
+    parentEmail: payload.parentEmail || "",
+    profileImage: payload.profileImage || "",
+    documents: normalizeStudentDocuments(payload.documents),
+    status: ["ACTIVE", "INACTIVE", "PASSED", "TRANSFERRED"].includes(payload.status) ? payload.status : "ACTIVE",
+    transportRequired: Boolean(payload.transportRequired === true || payload.transportRequired === "true"),
+    transportRouteId: payload.transportRouteId || payload.routeId || "",
+    pickupPoint: payload.pickupPoint || "",
+    hostelRequired: Boolean(payload.hostelRequired === true || payload.hostelRequired === "true"),
+    hostelRoomNumber: payload.hostelRoomNumber || payload.roomNumber || "",
+    bloodGroup: payload.bloodGroup || "",
+    allergies: payload.allergies || "",
+    medicalNotes: payload.medicalNotes || "",
+    previousSchool: payload.previousSchool || "",
+    religion: payload.religion || "",
+    category: String(payload.category || "").trim(),
+    nationality: payload.nationality || "",
+  };
+};
+
+/** Only keys explicitly sent in JSON (partial update). */
+const studentExtendedFieldsForPatch = (payload) => {
+  const o = {};
+  const has = (k) => Object.prototype.hasOwnProperty.call(payload, k);
+  if (has("phone") || has("mobileNumber")) o.phone = payload.phone ?? payload.mobileNumber ?? "";
+  if (has("alternateMobile") || has("alternatePhone")) o.alternatePhone = payload.alternateMobile ?? payload.alternatePhone ?? "";
+  if (has("gender")) o.gender = payload.gender || "OTHER";
+  if (has("dateOfBirth")) o.dateOfBirth = toDate(payload.dateOfBirth);
+  if (has("address")) o.address = payload.address ?? "";
+  if (has("city")) o.city = payload.city ?? "";
+  if (has("state")) o.state = payload.state ?? "";
+  if (has("pincode")) o.pincode = payload.pincode ?? "";
+  if (has("admissionDate")) o.admissionDate = toDate(payload.admissionDate);
+  if (has("admissionNumber")) o.admissionNumber = payload.admissionNumber ?? "";
+  if (has("parentName")) o.parentName = payload.parentName ?? "";
+  if (has("fatherName")) o.fatherName = payload.fatherName ?? "";
+  if (has("motherName")) o.motherName = payload.motherName ?? "";
+  if (has("guardianName")) o.guardianName = payload.guardianName ?? "";
+  if (has("parentPhone") || has("parentMobile")) o.parentPhone = payload.parentPhone ?? payload.parentMobile ?? "";
+  if (has("parentEmail")) o.parentEmail = payload.parentEmail ?? "";
+  if (has("profileImage")) o.profileImage = payload.profileImage ?? "";
+  if (has("documents")) o.documents = normalizeStudentDocuments(payload.documents);
+  if (has("status") && ["ACTIVE", "INACTIVE", "PASSED", "TRANSFERRED"].includes(payload.status)) o.status = payload.status;
+  if (has("transportRequired")) o.transportRequired = Boolean(payload.transportRequired === true || payload.transportRequired === "true");
+  if (has("transportRouteId") || has("routeId")) o.transportRouteId = payload.transportRouteId ?? payload.routeId ?? "";
+  if (has("pickupPoint")) o.pickupPoint = payload.pickupPoint ?? "";
+  if (has("hostelRequired")) o.hostelRequired = Boolean(payload.hostelRequired === true || payload.hostelRequired === "true");
+  if (has("hostelRoomNumber") || has("roomNumber")) o.hostelRoomNumber = payload.hostelRoomNumber ?? payload.roomNumber ?? "";
+  if (has("bloodGroup")) o.bloodGroup = payload.bloodGroup ?? "";
+  if (has("allergies")) o.allergies = payload.allergies ?? "";
+  if (has("medicalNotes")) o.medicalNotes = payload.medicalNotes ?? "";
+  if (has("previousSchool")) o.previousSchool = payload.previousSchool ?? "";
+  if (has("religion")) o.religion = payload.religion ?? "";
+  if (has("category")) o.category = String(payload.category ?? "").trim();
+  if (has("nationality")) o.nationality = payload.nationality ?? "";
+  return o;
+};
+
 const logActivity = async (user, action, entityType, entityId, meta = {}) => {
   await adminRepository.createActivity({
     schoolId: user.schoolId,
@@ -80,11 +184,16 @@ const createStudent = async (user, payload) => {
   const classInfo = await adminRepository.findClassById({ schoolId, classId: payload.classId });
   if (!classInfo) throw new AppError("Class not found in your school", 404);
 
+  const displayName = String(payload.name || payload.fullName || "").trim();
+  if (!displayName) throw new AppError("Student name is required", 400);
+  const studentCode = await generateStudentCode(schoolId);
+  const ext = studentExtendedFieldsForCreate(payload);
+
   const studentUser = await adminRepository.createUser({
-    name: payload.name,
+    name: displayName,
     email: payload.email,
     password: payload.password,
-    phone: payload.phone || "",
+    phone: payload.phone || payload.mobileNumber || "",
     role: ROLES.STUDENT,
     schoolId,
   });
@@ -95,21 +204,27 @@ const createStudent = async (user, payload) => {
     classId: payload.classId,
     section: payload.section,
     rollNumber: payload.rollNumber,
-    phone: payload.phone || "",
-    gender: payload.gender || "OTHER",
-    dateOfBirth: toDate(payload.dateOfBirth),
-    address: payload.address || "",
-    admissionDate: toDate(payload.admissionDate),
-    parentName: payload.parentName || "",
-    parentPhone: payload.parentPhone || "",
-    parentEmail: payload.parentEmail || "",
-    profileImage: payload.profileImage || "",
-    documents: Array.isArray(payload.documents) ? payload.documents : [],
+    studentCode,
+    ...ext,
   });
 
-  await logActivity(user, "CREATE", "STUDENT", student._id, { name: payload.name, email: payload.email });
+  await logActivity(user, "CREATE", "STUDENT", student._id, { name: displayName, email: payload.email });
   const fullStudent = await adminRepository.findStudentById({ schoolId, studentId: student._id });
   await autoAssignFeeStructuresForStudent(schoolId, fullStudent);
+
+  if (payload.feeStructureId) {
+    try {
+      await assignFees(user, {
+        studentId: student._id,
+        feeStructureId: payload.feeStructureId,
+        manualDiscount: Number(payload.feeAssignManualDiscount || 0),
+        dueDate: payload.feeAssignDueDate || undefined,
+      });
+    } catch (e) {
+      if (e.statusCode !== 409) throw e;
+    }
+  }
+
   return adminRepository.findStudentById({ schoolId, studentId: student._id });
 };
 
@@ -166,29 +281,25 @@ const updateStudent = async (user, studentId, payload) => {
     }
   }
 
+  const nextName = payload.name !== undefined || payload.fullName !== undefined ? String(payload.name || payload.fullName || "").trim() : null;
   await adminRepository.updateUserById(student.userId._id, {
-    ...(payload.name ? { name: payload.name } : {}),
+    ...(nextName ? { name: nextName } : {}),
     ...(payload.email ? { email: payload.email } : {}),
-    ...(payload.phone ? { phone: payload.phone } : {}),
+    ...(payload.phone !== undefined || payload.mobileNumber !== undefined
+      ? { phone: payload.phone ?? payload.mobileNumber ?? "" }
+      : {}),
   });
+
+  const extUpdate = studentExtendedFieldsForPatch(payload);
 
   const updated = await adminRepository.updateStudent({
     schoolId,
     studentId,
     payload: {
       ...(payload.classId ? { classId: payload.classId } : {}),
-      ...(payload.section ? { section: payload.section } : {}),
-      ...(payload.rollNumber ? { rollNumber: payload.rollNumber } : {}),
-      ...(payload.phone !== undefined ? { phone: payload.phone } : {}),
-      ...(payload.gender ? { gender: payload.gender } : {}),
-      ...(payload.dateOfBirth !== undefined ? { dateOfBirth: toDate(payload.dateOfBirth) } : {}),
-      ...(payload.address !== undefined ? { address: payload.address } : {}),
-      ...(payload.admissionDate !== undefined ? { admissionDate: toDate(payload.admissionDate) } : {}),
-      ...(payload.parentName !== undefined ? { parentName: payload.parentName } : {}),
-      ...(payload.parentPhone !== undefined ? { parentPhone: payload.parentPhone } : {}),
-      ...(payload.parentEmail !== undefined ? { parentEmail: payload.parentEmail } : {}),
-      ...(payload.profileImage !== undefined ? { profileImage: payload.profileImage } : {}),
-      ...(payload.documents !== undefined ? { documents: payload.documents } : {}),
+      ...(payload.section !== undefined ? { section: payload.section } : {}),
+      ...(payload.rollNumber !== undefined ? { rollNumber: payload.rollNumber } : {}),
+      ...extUpdate,
     },
   });
   await logActivity(user, "UPDATE", "STUDENT", studentId);
@@ -289,7 +400,7 @@ const generateStudentIdCardPDF = async (user, studentId) => {
     doc.fontSize(11).text(`Name: ${student.userId?.name || "-"}`, x, y);
     doc.text(`Class: ${student.classId?.name}-${student.section}`, x, y + 20);
     doc.text(`Roll: ${student.rollNumber || "-"}`, x, y + 40);
-    doc.text(`Parent: ${student.parentName || "-"}`, x, y + 60);
+    doc.text(`Parent: ${student.fatherName || student.parentName || student.guardianName || "-"}`, x, y + 60);
     doc.text(`Phone: ${student.phone || "-"}`, x, y + 80);
 
     // ➖ Divider
