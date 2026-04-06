@@ -44,8 +44,8 @@ const menuByRole = {
   SCHOOL_ADMIN: [
     { to: "/admin", label: "Dashboard", icon: <MdDashboard /> },
     { to: "/admin/students", label: "Student Management", icon: <FaGraduationCap /> },
-    { to: "/admin/create-teacher", label: "Teacher Management", icon: <FaChalkboardTeacher /> },
-    { to: "/admin/create-class", label: "Class & Section", icon: <MdClass /> },
+    { to: "/admin/teachers", label: "Teacher Management", icon: <FaChalkboardTeacher /> },
+    { to: "/admin/classes", label: "Class & Section", icon: <MdClass /> },
     { to: "/admin/subjects", label: "Subjects", icon: <MdMenuBook /> },
     { to: "/admin/attendance", label: "Attendance", icon: <MdPeople /> },
     { to: "/admin/fees", label: "Fees", icon: <MdReceipt /> },

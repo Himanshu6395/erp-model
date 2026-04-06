@@ -45,7 +45,7 @@ const generateStudentIdCard = async (req, res) => {
 };
 
 const createTeacher = async (req, res) => {
-  const data = await adminService.createTeacher(req.user, req.body);
+  const data = await adminService.createTeacher(req.user, req.body, req.files || {});
   return res.status(201).json({ success: true, data });
 };
 
@@ -60,7 +60,7 @@ const getTeacherById = async (req, res) => {
 };
 
 const updateTeacher = async (req, res) => {
-  const data = await adminService.updateTeacher(req.user, req.params.teacherId, req.body);
+  const data = await adminService.updateTeacher(req.user, req.params.teacherId, req.body, req.files || {});
   return res.json({ success: true, data });
 };
 

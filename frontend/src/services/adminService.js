@@ -18,6 +18,7 @@ export const adminService = {
 
   createTeacher: async (payload) => (await api.post("/school-admin/teachers", payload)).data.data,
   getTeachers: async (params) => (await api.get("/school-admin/teachers", { params })).data.data,
+  getTeacherById: async (teacherId) => (await api.get(`/school-admin/teachers/${teacherId}`)).data.data,
   updateTeacher: async (teacherId, payload) => (await api.put(`/school-admin/teachers/${teacherId}`, payload)).data.data,
   deleteTeacher: async (teacherId) => (await api.delete(`/school-admin/teachers/${teacherId}`)).data.data,
 

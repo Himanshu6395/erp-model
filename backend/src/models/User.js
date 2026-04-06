@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 6 },
     phone: { type: String, trim: true, default: "" },
+    status: { type: String, enum: ["ACTIVE", "INACTIVE"], default: "ACTIVE" },
+    isVerified: { type: Boolean, default: true },
     role: { type: String, enum: ALL_ROLES, required: true },
     schoolId: { type: mongoose.Schema.Types.ObjectId, ref: "School", default: null },
   },

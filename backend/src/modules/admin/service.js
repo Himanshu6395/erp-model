@@ -3,6 +3,10 @@ import AppError from "../../common/errors/AppError.js";
 import { ROLES } from "../../common/constants/roles.js";
 import { adminRepository } from "./repository.js";
 import School from "../../models/School.js";
+import Student from "../../models/Student.js";
+import ClassModel from "../../models/Class.js";
+import Subject from "../../models/Subject.js";
+import Timetable from "../../models/Timetable.js";
 import * as feeDomain from "./feeDomain.js";
 import * as feeCalc from "../../common/utils/feeCalculations.js";
 import { schoolAdminNoticeService } from "../notices/schoolAdminNotice.service.js";
@@ -53,8 +57,15 @@ const generateStudentCode = async (schoolId) => {
     .replace(/\s+/g, "")
     .toUpperCase()
     .slice(0, 8);
-  const n = await adminRepository.countStudents({ schoolId });
-  return `${prefix}-${String(n + 1).padStart(5, "0")}`;
+  const pattern = new RegExp(`^${prefix}-\\d+$`);
+  const latest = await Student.findOne({ schoolId, studentCode: pattern })
+    .select("studentCode")
+    .sort({ studentCode: -1 })
+    .lean();
+  const current = String(latest?.studentCode || "");
+  const match = current.match(/-(\d+)$/);
+  const nextNumber = match ? Number(match[1]) + 1 : 1;
+  return `${prefix}-${String(nextNumber).padStart(5, "0")}`;
 };
 
 const studentExtendedFieldsForCreate = (payload) => {
@@ -133,6 +144,168 @@ const studentExtendedFieldsForPatch = (payload) => {
   return o;
 };
 
+const parseMaybeJson = (value, fallback) => {
+  if (value == null || value === "") return fallback;
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
+const ensureStringArray = (value) => {
+  const source = Array.isArray(value) ? value : parseMaybeJson(value, value);
+  if (Array.isArray(source)) {
+    return source.map((item) => String(item || "").trim()).filter(Boolean);
+  }
+  if (typeof source === "string") {
+    return source
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const ensureObjectIdArray = (value) => ensureStringArray(value);
+
+const toStoredFileUrl = (file) => {
+  if (!file?.filename) return "";
+  return `/uploads/teachers/${file.filename}`;
+};
+
+const buildTeacherFullName = (payload) => {
+  const firstName = String(payload.firstName || "").trim();
+  const lastName = String(payload.lastName || "").trim();
+  const fallbackName = String(payload.name || "").trim();
+  const fullName = `${firstName} ${lastName}`.trim() || fallbackName;
+  return {
+    firstName,
+    lastName,
+    fullName,
+  };
+};
+
+const normalizeTeacherStatus = (value, fallback = "ACTIVE") =>
+  ["ACTIVE", "INACTIVE"].includes(String(value || "").toUpperCase()) ? String(value).toUpperCase() : fallback;
+
+const normalizeTeacherPayload = async (schoolId, payload, files = {}, existingTeacher = null) => {
+  const body = payload || {};
+  const { firstName, lastName, fullName } = buildTeacherFullName(body);
+  const subjectIds = ensureObjectIdArray(body.subjects || body.subjectIds);
+  const assignedClasses = ensureObjectIdArray(body.assignedClasses || body.classIds);
+  const sections = ensureStringArray(body.sections);
+  const subjectNames = ensureStringArray(body.subjectNames || body.subjectLabels);
+  const certificatesFromBody = ensureStringArray(body.certificates);
+
+  if (!fullName) throw new AppError("First name or teacher name is required", 400);
+  if (!body.email && !existingTeacher) throw new AppError("Email is required", 400);
+  if (!body.password && !existingTeacher) throw new AppError("Password is required", 400);
+
+  if (subjectIds.length) {
+    const count = await Subject.countDocuments({ schoolId, _id: { $in: subjectIds } });
+    if (count !== subjectIds.length) throw new AppError("One or more selected subjects are invalid", 400);
+  }
+
+  if (assignedClasses.length) {
+    const count = await ClassModel.countDocuments({ schoolId, _id: { $in: assignedClasses } });
+    if (count !== assignedClasses.length) throw new AppError("One or more assigned classes are invalid", 400);
+  }
+
+  let timetableId = body.timetableId || null;
+  if (timetableId) {
+    const exists = await Timetable.exists({ schoolId, _id: timetableId });
+    if (!exists) throw new AppError("Selected timetable is invalid", 400);
+  }
+
+  const resumeFile = files.resume?.[0];
+  const idProofFile = files.idProof?.[0];
+  const profileImageFile = files.profileImage?.[0];
+  const certificatesFiles = files.certificates || [];
+
+  const existingDocs = existingTeacher?.documents || {};
+  const documents = {
+    resume: resumeFile ? toStoredFileUrl(resumeFile) : body.resume ?? existingDocs.resume ?? "",
+    certificates: certificatesFiles.length
+      ? certificatesFiles.map(toStoredFileUrl).filter(Boolean)
+      : certificatesFromBody.length
+        ? certificatesFromBody
+        : existingDocs.certificates || [],
+    idProof: idProofFile ? toStoredFileUrl(idProofFile) : body.idProof ?? existingDocs.idProof ?? "",
+  };
+
+  const subjectDocs = subjectIds.length
+    ? await Subject.find({ schoolId, _id: { $in: subjectIds } }).select("name").lean()
+    : [];
+  const derivedSubjectNames = subjectDocs.map((item) => item.name).filter(Boolean);
+
+  return {
+    userPayload: {
+      name: fullName,
+      email: body.email ? String(body.email).trim().toLowerCase() : existingTeacher?.userId?.email,
+      password: body.password || undefined,
+      phone: body.phone ?? "",
+      status: normalizeTeacherStatus(body.status, existingTeacher?.userId?.status || "ACTIVE"),
+      isVerified:
+        body.isVerified === undefined
+          ? existingTeacher?.userId?.isVerified ?? true
+          : body.isVerified === true || body.isVerified === "true",
+    },
+    teacherPayload: {
+      firstName,
+      lastName,
+      phone: body.phone ?? "",
+      gender: ["MALE", "FEMALE", "OTHER"].includes(String(body.gender || "").toUpperCase())
+        ? String(body.gender).toUpperCase()
+        : existingTeacher?.gender || "OTHER",
+      dateOfBirth: body.dateOfBirth !== undefined ? toDate(body.dateOfBirth) : existingTeacher?.dateOfBirth ?? null,
+      qualification: body.qualification ?? "",
+      department: body.department ?? "",
+      joiningDate: body.joiningDate !== undefined ? toDate(body.joiningDate) : existingTeacher?.joiningDate ?? null,
+      experience: body.experience !== undefined ? Number(body.experience || 0) : existingTeacher?.experience ?? 0,
+      salary: body.salary !== undefined ? Number(body.salary || 0) : existingTeacher?.salary ?? 0,
+      employeeId: body.employeeId || existingTeacher?.employeeId || "",
+      subjects: subjectIds,
+      subjectNames: derivedSubjectNames.length ? derivedSubjectNames : subjectNames,
+      assignedClasses,
+      sections,
+      timetableId: timetableId || null,
+      addressLine: body.addressLine ?? "",
+      city: body.city ?? "",
+      state: body.state ?? "",
+      country: body.country ?? "",
+      pincode: body.pincode ?? "",
+      profileImage: profileImageFile ? toStoredFileUrl(profileImageFile) : body.profileImage ?? existingTeacher?.profileImage ?? "",
+      bankName: body.bankName ?? "",
+      accountNumber: body.accountNumber ?? "",
+      ifscCode: body.ifscCode ?? "",
+      panCard: body.panCard ?? "",
+      aadharNumber: body.aadharNumber ?? "",
+      documents,
+    },
+  };
+};
+
+const teacherPatchPayload = (nextTeacherPayload, existingTeacher) => {
+  const out = {};
+  for (const key of Object.keys(nextTeacherPayload)) {
+    if (nextTeacherPayload[key] !== undefined) out[key] = nextTeacherPayload[key];
+  }
+  if (!out.documents) out.documents = existingTeacher?.documents || {};
+  return out;
+};
+
+const generateTeacherEmployeeId = async (schoolId) => {
+  const school = await School.findById(schoolId).select("code").lean();
+  const prefix = String(school?.code || "TCH")
+    .replace(/\s+/g, "")
+    .toUpperCase()
+    .slice(0, 6);
+  const count = await adminRepository.countTeachers({ schoolId });
+  return `${prefix}-T-${String(count + 1).padStart(4, "0")}`;
+};
+
 const logActivity = async (user, action, entityType, entityId, meta = {}) => {
   await adminRepository.createActivity({
     schoolId: user.schoolId,
@@ -198,15 +371,28 @@ const createStudent = async (user, payload) => {
     schoolId,
   });
 
-  const student = await adminRepository.createStudent({
-    schoolId,
-    userId: studentUser._id,
-    classId: payload.classId,
-    section: payload.section,
-    rollNumber: payload.rollNumber,
-    studentCode,
-    ...ext,
-  });
+  let student;
+  let nextStudentCode = studentCode;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      student = await adminRepository.createStudent({
+        schoolId,
+        userId: studentUser._id,
+        classId: payload.classId,
+        section: payload.section,
+        rollNumber: payload.rollNumber,
+        studentCode: nextStudentCode,
+        ...ext,
+      });
+      break;
+    } catch (error) {
+      if (error?.code !== 11000 || attempt === 2) {
+        await adminRepository.deleteUserById(studentUser._id);
+        throw error;
+      }
+      nextStudentCode = await generateStudentCode(schoolId);
+    }
+  }
 
   await logActivity(user, "CREATE", "STUDENT", student._id, { name: displayName, email: payload.email });
   const fullStudent = await adminRepository.findStudentById({ schoolId, studentId: student._id });
@@ -417,16 +603,21 @@ const generateStudentIdCardPDF = async (user, studentId) => {
     doc.end();
   });
 };
-const createTeacher = async (user, payload) => {
+const createTeacher = async (user, payload, files = {}) => {
   const schoolId = ensureSchoolAdmin(user);
   const existingUser = await adminRepository.findUserByEmail(payload.email?.trim().toLowerCase());
   if (existingUser) throw new AppError("Email already in use", 409);
 
+  const normalized = await normalizeTeacherPayload(schoolId, payload, files);
+  const employeeId = normalized.teacherPayload.employeeId || (await generateTeacherEmployeeId(schoolId));
+
   const teacherUser = await adminRepository.createUser({
-    name: payload.name,
-    email: payload.email,
-    password: payload.password,
-    phone: payload.phone || "",
+    name: normalized.userPayload.name,
+    email: normalized.userPayload.email,
+    password: normalized.userPayload.password,
+    phone: normalized.userPayload.phone,
+    status: normalized.userPayload.status,
+    isVerified: normalized.userPayload.isVerified,
     role: ROLES.TEACHER,
     schoolId,
   });
@@ -434,16 +625,14 @@ const createTeacher = async (user, payload) => {
   const teacher = await adminRepository.createTeacher({
     schoolId,
     userId: teacherUser._id,
-    phone: payload.phone || "",
-    subject: payload.subject || "",
-    qualification: payload.qualification || "",
-    experience: Number(payload.experience || 0),
-    salary: Number(payload.salary || 0),
-    joiningDate: toDate(payload.joiningDate),
-    address: payload.address || "",
-    profileImage: payload.profileImage || "",
+    employeeId,
+    ...normalized.teacherPayload,
   });
-  await logActivity(user, "CREATE", "TEACHER", teacher._id, { name: payload.name, email: payload.email });
+  await logActivity(user, "CREATE", "TEACHER", teacher._id, {
+    name: normalized.userPayload.name,
+    email: normalized.userPayload.email,
+    employeeId,
+  });
   return adminRepository.findTeacherById({ schoolId, teacherId: teacher._id });
 };
 
@@ -471,7 +660,7 @@ const getTeacherById = async (user, teacherId) => {
   return teacher;
 };
 
-const updateTeacher = async (user, teacherId, payload) => {
+const updateTeacher = async (user, teacherId, payload, files = {}) => {
   const schoolId = ensureSchoolAdmin(user);
   const teacher = await getTeacherById(user, teacherId);
 
@@ -482,25 +671,25 @@ const updateTeacher = async (user, teacherId, payload) => {
     }
   }
 
+  const normalized = await normalizeTeacherPayload(schoolId, payload, files, teacher);
+
   await adminRepository.updateUserById(teacher.userId._id, {
-    ...(payload.name ? { name: payload.name } : {}),
-    ...(payload.email ? { email: payload.email } : {}),
-    ...(payload.phone ? { phone: payload.phone } : {}),
+    ...(normalized.userPayload.name ? { name: normalized.userPayload.name } : {}),
+    ...(normalized.userPayload.email ? { email: normalized.userPayload.email } : {}),
+    ...(normalized.userPayload.phone !== undefined ? { phone: normalized.userPayload.phone } : {}),
+    ...(normalized.userPayload.status ? { status: normalized.userPayload.status } : {}),
+    ...(normalized.userPayload.isVerified !== undefined ? { isVerified: normalized.userPayload.isVerified } : {}),
   });
+  if (payload.password) {
+    const userDoc = await adminRepository.findUserById(teacher.userId._id);
+    userDoc.password = payload.password;
+    await userDoc.save();
+  }
 
   const updated = await adminRepository.updateTeacher({
     schoolId,
     teacherId,
-    payload: {
-      ...(payload.phone !== undefined ? { phone: payload.phone } : {}),
-      ...(payload.subject !== undefined ? { subject: payload.subject } : {}),
-      ...(payload.qualification !== undefined ? { qualification: payload.qualification } : {}),
-      ...(payload.experience !== undefined ? { experience: Number(payload.experience || 0) } : {}),
-      ...(payload.salary !== undefined ? { salary: Number(payload.salary || 0) } : {}),
-      ...(payload.joiningDate !== undefined ? { joiningDate: toDate(payload.joiningDate) } : {}),
-      ...(payload.address !== undefined ? { address: payload.address } : {}),
-      ...(payload.profileImage !== undefined ? { profileImage: payload.profileImage } : {}),
-    },
+    payload: teacherPatchPayload(normalized.teacherPayload, teacher),
   });
   await logActivity(user, "UPDATE", "TEACHER", teacherId);
   return updated;

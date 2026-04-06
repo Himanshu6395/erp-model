@@ -6,6 +6,7 @@ import { protect, authorize } from "../../common/middleware/authMiddleware.js";
 import { ROLES } from "../../common/constants/roles.js";
 import { adminController } from "./controller.js";
 import { uploadNoticeFile } from "../../common/middleware/uploadNotice.js";
+import { uploadTeacherFiles } from "../../common/middleware/uploadTeacherFiles.js";
 import AppError from "../../common/errors/AppError.js";
 
 const router = Router();
@@ -13,6 +14,18 @@ const router = Router();
 const uploadNoticeMw = (req, res, next) => {
   uploadNoticeFile.single("attachment")(req, res, (err) => {
     if (err) return next(err instanceof AppError ? err : new AppError(err.message || "Upload failed", 400));
+    next();
+  });
+};
+
+const uploadTeacherMw = (req, res, next) => {
+  uploadTeacherFiles.fields([
+    { name: "profileImage", maxCount: 1 },
+    { name: "resume", maxCount: 1 },
+    { name: "certificates", maxCount: 10 },
+    { name: "idProof", maxCount: 1 },
+  ])(req, res, (err) => {
+    if (err) return next(err instanceof AppError ? err : new AppError(err.message || "Teacher upload failed", 400));
     next();
   });
 };
@@ -76,7 +89,15 @@ router.get(
 
 router.post(
   "/teachers",
-  [body("name").trim().notEmpty(), body("email").isEmail(), body("password").isLength({ min: 6 })],
+  uploadTeacherMw,
+  [
+    body("email").isEmail(),
+    body("password").isLength({ min: 6 }),
+    body("firstName").optional().trim().notEmpty(),
+    body("lastName").optional().trim(),
+    body("status").optional().isIn(["ACTIVE", "INACTIVE"]),
+    body("isVerified").optional().isIn(["true", "false", true, false]),
+  ],
   validateRequest,
   catchAsync(adminController.createTeacher)
 );
@@ -89,7 +110,8 @@ router.get(
 );
 router.put(
   "/teachers/:teacherId",
-  [param("teacherId").isMongoId()],
+  uploadTeacherMw,
+  [param("teacherId").isMongoId(), body("email").optional().isEmail(), body("status").optional().isIn(["ACTIVE", "INACTIVE"])],
   validateRequest,
   catchAsync(adminController.updateTeacher)
 );

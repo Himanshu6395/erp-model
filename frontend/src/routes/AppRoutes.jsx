@@ -32,12 +32,18 @@ import BlockedSchoolsPage from "../pages/superAdmin/BlockedSchools";
 import GlobalAnnouncementPage from "../pages/superAdmin/GlobalAnnouncement";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminStudentManagementLayout from "../layouts/AdminStudentManagementLayout";
+import AdminTeacherManagementLayout from "../layouts/AdminTeacherManagementLayout";
+import AdminClassManagementLayout from "../layouts/AdminClassManagementLayout";
+import AdminSubjectManagementLayout from "../layouts/AdminSubjectManagementLayout";
 import CreateStudentPage from "../pages/admin/CreateStudent";
 import RegisteredStudentsPage from "../pages/admin/RegisteredStudents";
 import CreateTeacherPage from "../pages/admin/CreateTeacher";
+import RegisteredTeachersPage from "../pages/admin/RegisteredTeachers";
 import CreateClassPage from "../pages/admin/CreateClass";
+import RegisteredClassesPage from "../pages/admin/RegisteredClasses";
 import NoticeManagementPage from "../pages/admin/NoticeManagement";
 import SubjectManagementPage from "../pages/admin/SubjectManagement";
+import RegisteredSubjectsPage from "../pages/admin/RegisteredSubjects";
 import AttendanceManagementPage from "../pages/admin/AttendanceManagement";
 import FeesManagementPage from "../pages/admin/FeesManagement";
 import ModulePlaceholder from "../pages/admin/ModulePlaceholder";
@@ -157,9 +163,23 @@ function AppRoutes() {
             <Route path="registered" element={<RegisteredStudentsPage />} />
           </Route>
           <Route path="/admin/create-student" element={<Navigate to="/admin/students/enrol" replace />} />
-          <Route path="/admin/create-teacher" element={<CreateTeacherPage />} />
-          <Route path="/admin/create-class" element={<CreateClassPage />} />
-          <Route path="/admin/subjects" element={<SubjectManagementPage />} />
+          <Route path="/admin/teachers" element={<AdminTeacherManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<CreateTeacherPage />} />
+            <Route path="registered" element={<RegisteredTeachersPage />} />
+          </Route>
+          <Route path="/admin/create-teacher" element={<Navigate to="/admin/teachers/create" replace />} />
+          <Route path="/admin/classes" element={<AdminClassManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<CreateClassPage />} />
+            <Route path="registered" element={<RegisteredClassesPage />} />
+          </Route>
+          <Route path="/admin/create-class" element={<Navigate to="/admin/classes/create" replace />} />
+          <Route path="/admin/subjects" element={<AdminSubjectManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<SubjectManagementPage />} />
+            <Route path="registered" element={<RegisteredSubjectsPage />} />
+          </Route>
           <Route path="/admin/attendance" element={<AttendanceManagementPage />} />
           <Route path="/admin/fees" element={<FeesManagementPage />} />
           <Route

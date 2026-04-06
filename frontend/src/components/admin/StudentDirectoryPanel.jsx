@@ -179,10 +179,10 @@ export default function StudentDirectoryPanel() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap gap-2 border-t border-slate-100 pt-4 sm:border-t-0 sm:pt-0">
+                  <div className="flex shrink-0 flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:border-t-0 sm:pt-0">
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-brand-500/20 transition hover:bg-brand-700"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-brand-500/20 transition hover:bg-brand-700 sm:w-auto"
                       onClick={() => goEdit(item)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -190,7 +190,7 @@ export default function StudentDirectoryPanel() {
                     </button>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-700 transition hover:bg-slate-50"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-slate-700 transition hover:bg-slate-50 sm:w-auto"
                       onClick={() => downloadIdCard(item._id, name)}
                     >
                       <CreditCard className="h-3.5 w-3.5" />
@@ -198,7 +198,7 @@ export default function StudentDirectoryPanel() {
                     </button>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-rose-700 transition hover:bg-rose-100"
+                      className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-rose-700 transition hover:bg-rose-100 sm:w-auto"
                       onClick={() => deleteStudent(item._id)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
