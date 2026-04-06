@@ -396,14 +396,14 @@ router.post(
     body("startDate").isISO8601(),
     body("endDate").isISO8601(),
     body("resultPublishDate").optional({ values: "falsy" }).isISO8601(),
-    body("status").optional().isIn(["DRAFT", "ONGOING", "COMPLETED", "PUBLISHED"]),
+    body("status").optional().isIn(["DRAFT", "UPCOMING", "ONGOING", "COMPLETED", "PUBLISHED"]),
   ],
   validateRequest,
   catchAsync(adminController.createExamSession)
 );
 router.get(
   "/exams",
-  [query("classId").optional().isMongoId(), query("status").optional().isIn(["DRAFT", "ONGOING", "COMPLETED", "PUBLISHED", ""])],
+  [query("classId").optional().isMongoId(), query("status").optional().isIn(["DRAFT", "UPCOMING", "ONGOING", "COMPLETED", "PUBLISHED", ""])],
   validateRequest,
   catchAsync(adminController.listExamSessions)
 );
@@ -412,7 +412,7 @@ router.patch(
   "/exams/:examId",
   [
     param("examId").isMongoId(),
-    body("status").optional().isIn(["DRAFT", "ONGOING", "COMPLETED", "PUBLISHED"]),
+    body("status").optional().isIn(["DRAFT", "UPCOMING", "ONGOING", "COMPLETED", "PUBLISHED"]),
     body("name").optional().trim().notEmpty(),
     body("academicYear").optional().trim().isString(),
     body("term").optional().trim().isString(),
@@ -425,6 +425,7 @@ router.patch(
   validateRequest,
   catchAsync(adminController.updateExamSession)
 );
+router.delete("/exams/:examId", [param("examId").isMongoId()], validateRequest, catchAsync(adminController.deleteExamSession));
 router.post(
   "/exams/:examId/subjects",
   [
@@ -439,6 +440,78 @@ router.post(
   validateRequest,
   catchAsync(adminController.addExamSubject)
 );
+router.put(
+  "/exam-subjects/:examSubjectId",
+  [
+    param("examSubjectId").isMongoId(),
+    body("maxMarks").optional().isFloat({ gt: 0 }),
+    body("passingMarks").optional().isFloat({ min: 0 }),
+    body("examType").optional().isIn(["WRITTEN", "ORAL", "PRACTICAL"]),
+    body("isInternal").optional().isBoolean(),
+  ],
+  validateRequest,
+  catchAsync(adminController.updateExamSubject)
+);
+router.delete("/exam-subjects/:examSubjectId", [param("examSubjectId").isMongoId()], validateRequest, catchAsync(adminController.deleteExamSubject));
+router.post(
+  "/exams/:examId/schedules",
+  [
+    param("examId").isMongoId(),
+    body("subjectId").isMongoId(),
+    body("examDate").isISO8601(),
+    body("startTime").trim().notEmpty(),
+    body("endTime").trim().notEmpty(),
+    body("duration").optional().isFloat({ min: 0 }),
+    body("invigilatorId").optional({ values: "falsy" }).isMongoId(),
+  ],
+  validateRequest,
+  catchAsync(adminController.createExamSchedule)
+);
+router.put(
+  "/exam-schedules/:scheduleId",
+  [
+    param("scheduleId").isMongoId(),
+    body("examDate").optional().isISO8601(),
+    body("startTime").optional().trim().notEmpty(),
+    body("endTime").optional().trim().notEmpty(),
+    body("duration").optional().isFloat({ min: 0 }),
+    body("invigilatorId").optional({ values: "falsy" }).isMongoId(),
+  ],
+  validateRequest,
+  catchAsync(adminController.updateExamSchedule)
+);
+router.delete("/exam-schedules/:scheduleId", [param("scheduleId").isMongoId()], validateRequest, catchAsync(adminController.deleteExamSchedule));
+router.get("/exams/:examId/results", [param("examId").isMongoId()], validateRequest, catchAsync(adminController.listExamResults));
+router.post(
+  "/exams/:examId/results",
+  [
+    param("examId").isMongoId(),
+    body("entries").isArray({ min: 1 }),
+    body("entries.*.studentId").isMongoId(),
+    body("entries.*.subjectId").isMongoId(),
+    body("entries.*.marksObtained").optional().isFloat({ min: 0 }),
+    body("entries.*.internalMarks").optional().isFloat({ min: 0 }),
+    body("entries.*.practicalMarks").optional().isFloat({ min: 0 }),
+    body("entries.*.vivaMarks").optional().isFloat({ min: 0 }),
+    body("entries.*.graceMarks").optional().isFloat({ min: 0 }),
+    body("entries.*.attendancePercentage").optional().isFloat({ min: 0, max: 100 }),
+    body("entries.*.reEvaluationStatus").optional().isIn(["NOT_REQUESTED", "REQUESTED", "APPROVED", "REJECTED"]),
+    body("entries.*.supplementaryFlag").optional().isBoolean(),
+  ],
+  validateRequest,
+  catchAsync(adminController.upsertExamResults)
+);
+router.delete("/exam-results/:resultId", [param("resultId").isMongoId()], validateRequest, catchAsync(adminController.deleteExamResult));
+router.patch(
+  "/exams/:examId/publish",
+  [param("examId").isMongoId(), body("resultPublished").optional().isBoolean(), body("resultLocked").optional().isBoolean()],
+  validateRequest,
+  catchAsync(adminController.publishExamResults)
+);
+router.post("/exams/:examId/report-cards", [param("examId").isMongoId()], validateRequest, catchAsync(adminController.generateReportCards));
+router.get("/exams/:examId/report-cards", [param("examId").isMongoId()], validateRequest, catchAsync(adminController.listReportCards));
+router.delete("/report-cards/:reportCardId", [param("reportCardId").isMongoId()], validateRequest, catchAsync(adminController.deleteReportCard));
+router.get("/exams/:examId/merit-list", [param("examId").isMongoId()], validateRequest, catchAsync(adminController.getExamMeritList));
 router.get("/exams/:examId/dashboard", [param("examId").isMongoId()], validateRequest, catchAsync(adminController.getExamDashboard));
 
 router.put("/settings/profile", catchAsync(adminController.updateSchoolProfile));

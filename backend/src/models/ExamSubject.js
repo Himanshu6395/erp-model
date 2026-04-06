@@ -18,6 +18,8 @@ const examSubjectSchema = new mongoose.Schema(
     subjectCode: { type: String, trim: true, default: "" },
     maxMarks: { type: Number, required: true, min: 1 },
     passingMarks: { type: Number, required: true, min: 0 },
+    examType: { type: String, enum: ["WRITTEN", "ORAL", "PRACTICAL"], default: "WRITTEN" },
+    isInternal: { type: Boolean, default: false },
     components: { type: componentMaxSchema, default: () => ({ theory: 0, practical: 0, internal: 0 }) },
     /** Optional weight % for each component (should sum ~100 when used for weighted average) */
     weightage: {
