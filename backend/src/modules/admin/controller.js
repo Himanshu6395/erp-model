@@ -45,7 +45,7 @@ const generateStudentIdCard = async (req, res) => {
 };
 
 const createTeacher = async (req, res) => {
-  const data = await adminService.createTeacher(req.user, req.body);
+  const data = await adminService.createTeacher(req.user, req.body, req.files || {});
   return res.status(201).json({ success: true, data });
 };
 
@@ -60,7 +60,7 @@ const getTeacherById = async (req, res) => {
 };
 
 const updateTeacher = async (req, res) => {
-  const data = await adminService.updateTeacher(req.user, req.params.teacherId, req.body);
+  const data = await adminService.updateTeacher(req.user, req.params.teacherId, req.body, req.files || {});
   return res.json({ success: true, data });
 };
 
@@ -288,6 +288,76 @@ const addExamSubject = async (req, res) => {
   return res.status(201).json({ success: true, data });
 };
 
+const updateExamSubject = async (req, res) => {
+  const data = await examAdminService.updateExamSubject(req.user, req.params.examSubjectId, req.body);
+  return res.json({ success: true, data });
+};
+
+const deleteExamSubject = async (req, res) => {
+  const data = await examAdminService.deleteExamSubject(req.user, req.params.examSubjectId);
+  return res.json({ success: true, data });
+};
+
+const createExamSchedule = async (req, res) => {
+  const data = await examAdminService.createExamSchedule(req.user, req.params.examId, req.body);
+  return res.status(201).json({ success: true, data });
+};
+
+const updateExamSchedule = async (req, res) => {
+  const data = await examAdminService.updateExamSchedule(req.user, req.params.scheduleId, req.body);
+  return res.json({ success: true, data });
+};
+
+const deleteExamSchedule = async (req, res) => {
+  const data = await examAdminService.deleteExamSchedule(req.user, req.params.scheduleId);
+  return res.json({ success: true, data });
+};
+
+const deleteExamSession = async (req, res) => {
+  const data = await examAdminService.deleteExamSession(req.user, req.params.examId);
+  return res.json({ success: true, data });
+};
+
+const upsertExamResults = async (req, res) => {
+  const data = await examAdminService.upsertExamResults(req.user, req.params.examId, req.body);
+  return res.status(201).json({ success: true, data });
+};
+
+const listExamResults = async (req, res) => {
+  const data = await examAdminService.listExamResults(req.user, req.params.examId);
+  return res.json({ success: true, data });
+};
+
+const deleteExamResult = async (req, res) => {
+  const data = await examAdminService.deleteExamResult(req.user, req.params.resultId);
+  return res.json({ success: true, data });
+};
+
+const publishExamResults = async (req, res) => {
+  const data = await examAdminService.publishExamResults(req.user, req.params.examId, req.body);
+  return res.json({ success: true, data });
+};
+
+const generateReportCards = async (req, res) => {
+  const data = await examAdminService.generateReportCards(req.user, req.params.examId, req.body);
+  return res.status(201).json({ success: true, data });
+};
+
+const listReportCards = async (req, res) => {
+  const data = await examAdminService.listReportCards(req.user, req.params.examId);
+  return res.json({ success: true, data });
+};
+
+const deleteReportCard = async (req, res) => {
+  const data = await examAdminService.deleteReportCard(req.user, req.params.reportCardId);
+  return res.json({ success: true, data });
+};
+
+const getExamMeritList = async (req, res) => {
+  const data = await examAdminService.getMeritList(req.user, req.params.examId);
+  return res.json({ success: true, data });
+};
+
 const getExamDashboard = async (req, res) => {
   const data = await examAdminService.getExamDashboard(req.user, req.params.examId);
   return res.json({ success: true, data });
@@ -350,5 +420,19 @@ export const adminController = {
   getExamSession,
   updateExamSession,
   addExamSubject,
+  updateExamSubject,
+  deleteExamSubject,
+  createExamSchedule,
+  updateExamSchedule,
+  deleteExamSchedule,
+  deleteExamSession,
+  upsertExamResults,
+  listExamResults,
+  deleteExamResult,
+  publishExamResults,
+  generateReportCards,
+  listReportCards,
+  deleteReportCard,
+  getExamMeritList,
   getExamDashboard,
 };

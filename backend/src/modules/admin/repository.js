@@ -39,19 +39,30 @@ export const adminRepository = {
 
   createTeacher: (payload) => Teacher.create(payload),
   findTeacherById: ({ schoolId, teacherId }) =>
-    Teacher.findOne({ _id: teacherId, schoolId }).populate("userId"),
+    Teacher.findOne({ _id: teacherId, schoolId })
+      .populate("userId")
+      .populate("subjects")
+      .populate("assignedClasses")
+      .populate("timetableId"),
   findTeachers: ({ schoolId, query, skip, limit }) =>
     Teacher.find({ schoolId })
       .populate({
         path: "userId",
         match: query ? { $or: [{ name: new RegExp(query, "i") }, { email: new RegExp(query, "i") }] } : {},
       })
+      .populate("subjects")
+      .populate("assignedClasses")
+      .populate("timetableId")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
   countTeachers: ({ schoolId }) => Teacher.countDocuments({ schoolId }),
   updateTeacher: ({ schoolId, teacherId, payload }) =>
-    Teacher.findOneAndUpdate({ _id: teacherId, schoolId }, payload, { new: true }).populate("userId"),
+    Teacher.findOneAndUpdate({ _id: teacherId, schoolId }, payload, { new: true })
+      .populate("userId")
+      .populate("subjects")
+      .populate("assignedClasses")
+      .populate("timetableId"),
   deleteTeacher: ({ schoolId, teacherId }) => Teacher.findOneAndDelete({ _id: teacherId, schoolId }),
 
   createClass: (payload) => ClassModel.create(payload),
@@ -69,9 +80,15 @@ export const adminRepository = {
   deleteClass: ({ schoolId, classId }) => ClassModel.findOneAndDelete({ _id: classId, schoolId }),
 
   createSubject: (payload) => Subject.create(payload),
-  findSubjects: ({ schoolId }) => Subject.find({ schoolId }).populate("classId teacherId").sort({ createdAt: -1 }),
+  findSubjects: ({ schoolId }) =>
+    Subject.find({ schoolId })
+      .populate("classId")
+      .populate({ path: "teacherId", populate: { path: "userId" } })
+      .sort({ createdAt: -1 }),
   updateSubject: ({ schoolId, subjectId, payload }) =>
-    Subject.findOneAndUpdate({ _id: subjectId, schoolId }, payload, { new: true }).populate("classId teacherId"),
+    Subject.findOneAndUpdate({ _id: subjectId, schoolId }, payload, { new: true })
+      .populate("classId")
+      .populate({ path: "teacherId", populate: { path: "userId" } }),
   deleteSubject: ({ schoolId, subjectId }) => Subject.findOneAndDelete({ _id: subjectId, schoolId }),
 
   upsertStudentAttendance: ({ schoolId, studentId, date, status }) =>

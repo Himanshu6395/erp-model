@@ -76,6 +76,18 @@ const login = async ({ email, password }, requestMeta = {}) => {
     throw new AppError("Invalid email or password", 401);
   }
 
+  if (user.status === "INACTIVE") {
+    await logLoginAttempt({
+      user,
+      schoolId: user.schoolId,
+      ipAddress: requestMeta.ipAddress,
+      device: requestMeta.device,
+      status: "FAILED",
+      reason: "USER_INACTIVE",
+    });
+    throw new AppError("Your account is inactive. Please contact the administrator.", 403);
+  }
+
   if (user.schoolId) {
     const school = await School.findById(user.schoolId);
     if (!school) throw new AppError("School not found", 404);
@@ -166,6 +178,8 @@ const login = async ({ email, password }, requestMeta = {}) => {
       email: user.email,
       role: user.role,
       schoolId: user.schoolId,
+      status: user.status,
+      isVerified: user.isVerified,
     },
   };
 };

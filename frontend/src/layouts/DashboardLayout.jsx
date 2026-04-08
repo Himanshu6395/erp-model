@@ -23,7 +23,7 @@ function DashboardLayout() {
   }, [mobileNavOpen]);
 
   return (
-    <div className="h-screen overflow-hidden bg-gray-100">
+    <div className="h-screen overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)]">
       <Sidebar
         role={user?.role}
         mobileOpen={mobileNavOpen}
@@ -31,7 +31,7 @@ function DashboardLayout() {
       />
       <div className="h-full md:pl-64">
         <Navbar onOpenMobileNav={() => setMobileNavOpen(true)} mobileNavOpen={mobileNavOpen} />
-        <main className="h-screen overflow-y-auto px-4 pb-4 pt-20 md:px-6 md:pb-6">
+        <main className="h-screen overflow-y-auto px-4 pb-4 pt-20 md:px-6 md:pb-6 md:pt-24">
           {showGlobalBanner ? <GlobalAnnouncementBanner /> : null}
           <Outlet />
         </main>

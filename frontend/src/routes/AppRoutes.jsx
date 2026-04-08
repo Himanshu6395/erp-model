@@ -32,16 +32,32 @@ import BlockedSchoolsPage from "../pages/superAdmin/BlockedSchools";
 import GlobalAnnouncementPage from "../pages/superAdmin/GlobalAnnouncement";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminStudentManagementLayout from "../layouts/AdminStudentManagementLayout";
+import AdminTeacherManagementLayout from "../layouts/AdminTeacherManagementLayout";
+import AdminClassManagementLayout from "../layouts/AdminClassManagementLayout";
+import AdminSubjectManagementLayout from "../layouts/AdminSubjectManagementLayout";
+import AdminTimetableManagementLayout from "../layouts/AdminTimetableManagementLayout";
+import AdminNoticeManagementLayout from "../layouts/AdminNoticeManagementLayout";
+import AdminExamManagementLayout from "../layouts/AdminExamManagementLayout";
+import AdminTransportManagementLayout from "../layouts/AdminTransportManagementLayout";
 import CreateStudentPage from "../pages/admin/CreateStudent";
 import RegisteredStudentsPage from "../pages/admin/RegisteredStudents";
 import CreateTeacherPage from "../pages/admin/CreateTeacher";
+import RegisteredTeachersPage from "../pages/admin/RegisteredTeachers";
 import CreateClassPage from "../pages/admin/CreateClass";
+import RegisteredClassesPage from "../pages/admin/RegisteredClasses";
 import NoticeManagementPage from "../pages/admin/NoticeManagement";
+import RegisteredNoticesPage from "../pages/admin/RegisteredNotices";
 import SubjectManagementPage from "../pages/admin/SubjectManagement";
+import RegisteredSubjectsPage from "../pages/admin/RegisteredSubjects";
 import AttendanceManagementPage from "../pages/admin/AttendanceManagement";
 import FeesManagementPage from "../pages/admin/FeesManagement";
 import ModulePlaceholder from "../pages/admin/ModulePlaceholder";
 import TimetableManagementPage from "../pages/admin/TimetableManagement";
+import RegisteredTimetablePage from "../pages/admin/RegisteredTimetable";
+import ExamsResultsManagementPage from "../pages/admin/ExamsResultsManagement";
+import RegisteredExamsPage from "../pages/admin/RegisteredExams";
+import TransportManagementPage from "../pages/admin/TransportManagement";
+import RegisteredTransportPage from "../pages/admin/RegisteredTransport";
 import StudentDashboard from "../pages/student/Dashboard";
 import StudentAttendancePage from "../pages/student/Attendance";
 import StudentResultPage from "../pages/student/Result";
@@ -157,16 +173,35 @@ function AppRoutes() {
             <Route path="registered" element={<RegisteredStudentsPage />} />
           </Route>
           <Route path="/admin/create-student" element={<Navigate to="/admin/students/enrol" replace />} />
-          <Route path="/admin/create-teacher" element={<CreateTeacherPage />} />
-          <Route path="/admin/create-class" element={<CreateClassPage />} />
-          <Route path="/admin/subjects" element={<SubjectManagementPage />} />
+          <Route path="/admin/teachers" element={<AdminTeacherManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<CreateTeacherPage />} />
+            <Route path="registered" element={<RegisteredTeachersPage />} />
+          </Route>
+          <Route path="/admin/create-teacher" element={<Navigate to="/admin/teachers/create" replace />} />
+          <Route path="/admin/classes" element={<AdminClassManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<CreateClassPage />} />
+            <Route path="registered" element={<RegisteredClassesPage />} />
+          </Route>
+          <Route path="/admin/create-class" element={<Navigate to="/admin/classes/create" replace />} />
+          <Route path="/admin/subjects" element={<AdminSubjectManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<SubjectManagementPage />} />
+            <Route path="registered" element={<RegisteredSubjectsPage />} />
+          </Route>
           <Route path="/admin/attendance" element={<AttendanceManagementPage />} />
           <Route path="/admin/fees" element={<FeesManagementPage />} />
-          <Route
-            path="/admin/exams-results"
-            element={<ModulePlaceholder title="Exams & Results" description="Create exams, add marks, generate report cards and grading workflows." />}
-          />
-          <Route path="/admin/timetable" element={<TimetableManagementPage />} />
+          <Route path="/admin/exams-results" element={<AdminExamManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<ExamsResultsManagementPage />} />
+            <Route path="registered" element={<RegisteredExamsPage />} />
+          </Route>
+          <Route path="/admin/timetable" element={<AdminTimetableManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<TimetableManagementPage />} />
+            <Route path="registered" element={<RegisteredTimetablePage />} />
+          </Route>
           <Route
             path="/admin/homework"
             element={<ModulePlaceholder title="Homework / Assignments" description="Assign homework, upload files and track student submissions." />}
@@ -175,10 +210,11 @@ function AppRoutes() {
             path="/admin/library"
             element={<ModulePlaceholder title="Library Management" description="Add books, issue/return flow and fines tracking." />}
           />
-          <Route
-            path="/admin/transport"
-            element={<ModulePlaceholder title="Transport Management" description="Manage vehicles, routes and student transport mapping." />}
-          />
+          <Route path="/admin/transport" element={<AdminTransportManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<TransportManagementPage />} />
+            <Route path="registered" element={<RegisteredTransportPage />} />
+          </Route>
           <Route
             path="/admin/hostel"
             element={<ModulePlaceholder title="Hostel Management" description="Room allocation and hostel student assignment." />}
@@ -215,7 +251,11 @@ function AppRoutes() {
             path="/admin/security"
             element={<ModulePlaceholder title="Security" description="JWT, RBAC, IP policies and tenant-level access control operations." />}
           />
-          <Route path="/admin/notices" element={<NoticeManagementPage />} />
+          <Route path="/admin/notices" element={<AdminNoticeManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<NoticeManagementPage />} />
+            <Route path="registered" element={<RegisteredNoticesPage />} />
+          </Route>
         </Route>
       </Route>
 

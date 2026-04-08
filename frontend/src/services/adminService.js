@@ -1,5 +1,22 @@
 import api from "./api";
 
+const transportEndpointMap = {
+  vehicles: "vehicles",
+  drivers: "drivers",
+  conductors: "conductors",
+  routes: "routes",
+  stops: "stops",
+  assignments: "assignments",
+  studentAssignments: "student-assignments",
+  fees: "fees",
+  attendance: "attendance",
+  maintenance: "maintenance",
+  tracking: "tracking",
+  notifications: "notifications",
+};
+
+const getTransportEndpoint = (moduleKey) => transportEndpointMap[moduleKey] || moduleKey;
+
 export const adminService = {
   getDashboard: async () => (await api.get("/school-admin/dashboard")).data.data,
 
@@ -18,6 +35,7 @@ export const adminService = {
 
   createTeacher: async (payload) => (await api.post("/school-admin/teachers", payload)).data.data,
   getTeachers: async (params) => (await api.get("/school-admin/teachers", { params })).data.data,
+  getTeacherById: async (teacherId) => (await api.get(`/school-admin/teachers/${teacherId}`)).data.data,
   updateTeacher: async (teacherId, payload) => (await api.put(`/school-admin/teachers/${teacherId}`, payload)).data.data,
   deleteTeacher: async (teacherId) => (await api.delete(`/school-admin/teachers/${teacherId}`)).data.data,
 
@@ -81,6 +99,26 @@ export const adminService = {
   listExamSessions: async (params) => (await api.get("/school-admin/exams", { params })).data.data,
   getExamSession: async (examId) => (await api.get(`/school-admin/exams/${examId}`)).data.data,
   updateExamSession: async (examId, payload) => (await api.patch(`/school-admin/exams/${examId}`, payload)).data.data,
+  deleteExamSession: async (examId) => (await api.delete(`/school-admin/exams/${examId}`)).data.data,
   addExamSubject: async (examId, payload) => (await api.post(`/school-admin/exams/${examId}/subjects`, payload)).data.data,
+  updateExamSubject: async (examSubjectId, payload) => (await api.put(`/school-admin/exam-subjects/${examSubjectId}`, payload)).data.data,
+  deleteExamSubject: async (examSubjectId) => (await api.delete(`/school-admin/exam-subjects/${examSubjectId}`)).data.data,
+  createExamSchedule: async (examId, payload) => (await api.post(`/school-admin/exams/${examId}/schedules`, payload)).data.data,
+  updateExamSchedule: async (scheduleId, payload) => (await api.put(`/school-admin/exam-schedules/${scheduleId}`, payload)).data.data,
+  deleteExamSchedule: async (scheduleId) => (await api.delete(`/school-admin/exam-schedules/${scheduleId}`)).data.data,
+  listExamResults: async (examId) => (await api.get(`/school-admin/exams/${examId}/results`)).data.data,
+  saveExamResults: async (examId, payload) => (await api.post(`/school-admin/exams/${examId}/results`, payload)).data.data,
+  deleteExamResult: async (resultId) => (await api.delete(`/school-admin/exam-results/${resultId}`)).data.data,
+  publishExamResults: async (examId, payload) => (await api.patch(`/school-admin/exams/${examId}/publish`, payload)).data.data,
+  generateReportCards: async (examId, payload) => (await api.post(`/school-admin/exams/${examId}/report-cards`, payload || {})).data.data,
+  listReportCards: async (examId) => (await api.get(`/school-admin/exams/${examId}/report-cards`)).data.data,
+  deleteReportCard: async (reportCardId) => (await api.delete(`/school-admin/report-cards/${reportCardId}`)).data.data,
+  getExamMeritList: async (examId) => (await api.get(`/school-admin/exams/${examId}/merit-list`)).data.data,
   getExamDashboard: async (examId) => (await api.get(`/school-admin/exams/${examId}/dashboard`)).data.data,
+
+  listTransportModule: async (moduleKey, params) => (await api.get(`/school-admin/transport/${getTransportEndpoint(moduleKey)}`, { params })).data.data,
+  getTransportModule: async (moduleKey, id) => (await api.get(`/school-admin/transport/${getTransportEndpoint(moduleKey)}/${id}`)).data.data,
+  createTransportModule: async (moduleKey, payload) => (await api.post(`/school-admin/transport/${getTransportEndpoint(moduleKey)}`, payload)).data.data,
+  updateTransportModule: async (moduleKey, id, payload) => (await api.put(`/school-admin/transport/${getTransportEndpoint(moduleKey)}/${id}`, payload)).data.data,
+  deleteTransportModule: async (moduleKey, id) => (await api.delete(`/school-admin/transport/${getTransportEndpoint(moduleKey)}/${id}`)).data.data,
 };

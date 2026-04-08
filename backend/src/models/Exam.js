@@ -16,6 +16,14 @@ const examSettingsSchema = new mongoose.Schema(
     roundingMode: { type: String, enum: ["NEAREST", "FLOOR", "CEIL"], default: "NEAREST" },
     rankEnabled: { type: Boolean, default: true },
     attendanceMinPct: { type: Number, default: 0, min: 0, max: 100 },
+    autoGradeCalculation: { type: Boolean, default: true },
+    gpaCalculationEnabled: { type: Boolean, default: true },
+    cgpaCalculationEnabled: { type: Boolean, default: true },
+    resultPublished: { type: Boolean, default: false },
+    resultLocked: { type: Boolean, default: false },
+    meritListEnabled: { type: Boolean, default: true },
+    smsNotificationEnabled: { type: Boolean, default: false },
+    emailNotificationEnabled: { type: Boolean, default: false },
   },
   { _id: false }
 );
@@ -30,16 +38,19 @@ const examSchema = new mongoose.Schema(
     term: { type: String, trim: true, default: "Term 1" },
     classId: { type: mongoose.Schema.Types.ObjectId, ref: "Class", required: true, index: true },
     section: { type: String, trim: true, default: "" },
+    sectionId: { type: String, trim: true, default: "" },
     examType: { type: String, enum: ["THEORY", "PRACTICAL", "COMBINED"], default: "COMBINED" },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
+    description: { type: String, trim: true, default: "" },
     resultPublishDate: { type: Date, default: null },
     /** @deprecated use startDate */
     examDate: { type: Date, default: null },
-    status: { type: String, enum: ["DRAFT", "ONGOING", "COMPLETED", "PUBLISHED"], default: "DRAFT" },
+    status: { type: String, enum: ["DRAFT", "UPCOMING", "ONGOING", "COMPLETED", "PUBLISHED"], default: "UPCOMING" },
     gradingScale: { type: [gradingBandSchema], default: [] },
     settings: { type: examSettingsSchema, default: () => ({}) },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", default: null },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true }
 );
