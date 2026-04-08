@@ -1,5 +1,22 @@
 import api from "./api";
 
+const transportEndpointMap = {
+  vehicles: "vehicles",
+  drivers: "drivers",
+  conductors: "conductors",
+  routes: "routes",
+  stops: "stops",
+  assignments: "assignments",
+  studentAssignments: "student-assignments",
+  fees: "fees",
+  attendance: "attendance",
+  maintenance: "maintenance",
+  tracking: "tracking",
+  notifications: "notifications",
+};
+
+const getTransportEndpoint = (moduleKey) => transportEndpointMap[moduleKey] || moduleKey;
+
 export const adminService = {
   getDashboard: async () => (await api.get("/school-admin/dashboard")).data.data,
 
@@ -98,4 +115,10 @@ export const adminService = {
   deleteReportCard: async (reportCardId) => (await api.delete(`/school-admin/report-cards/${reportCardId}`)).data.data,
   getExamMeritList: async (examId) => (await api.get(`/school-admin/exams/${examId}/merit-list`)).data.data,
   getExamDashboard: async (examId) => (await api.get(`/school-admin/exams/${examId}/dashboard`)).data.data,
+
+  listTransportModule: async (moduleKey, params) => (await api.get(`/school-admin/transport/${getTransportEndpoint(moduleKey)}`, { params })).data.data,
+  getTransportModule: async (moduleKey, id) => (await api.get(`/school-admin/transport/${getTransportEndpoint(moduleKey)}/${id}`)).data.data,
+  createTransportModule: async (moduleKey, payload) => (await api.post(`/school-admin/transport/${getTransportEndpoint(moduleKey)}`, payload)).data.data,
+  updateTransportModule: async (moduleKey, id, payload) => (await api.put(`/school-admin/transport/${getTransportEndpoint(moduleKey)}/${id}`, payload)).data.data,
+  deleteTransportModule: async (moduleKey, id) => (await api.delete(`/school-admin/transport/${getTransportEndpoint(moduleKey)}/${id}`)).data.data,
 };

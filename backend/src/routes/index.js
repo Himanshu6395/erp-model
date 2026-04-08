@@ -8,6 +8,7 @@ import subscriptionRoutes from "../modules/subscription/routes.js";
 import securityRoutes from "../modules/security/routes.js";
 import globalAnnouncementSuperRoutes from "../modules/globalAnnouncement/superRoutes.js";
 import globalAnnouncementSchoolRoutes from "../modules/globalAnnouncement/schoolRoutes.js";
+import transportRoutes from "../modules/transport/routes.js";
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.use("/super-admin", globalAnnouncementSuperRoutes);
 router.use("/super-admin/security", securityRoutes);
 router.use("/announcements", globalAnnouncementSchoolRoutes);
 router.use("/school-admin", adminRoutes);
+router.use("/school-admin/transport", transportRoutes);
 router.use("/student", studentRoutes);
 router.use("/teacher", teacherRoutes);
 

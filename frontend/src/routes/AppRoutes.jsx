@@ -38,6 +38,7 @@ import AdminSubjectManagementLayout from "../layouts/AdminSubjectManagementLayou
 import AdminTimetableManagementLayout from "../layouts/AdminTimetableManagementLayout";
 import AdminNoticeManagementLayout from "../layouts/AdminNoticeManagementLayout";
 import AdminExamManagementLayout from "../layouts/AdminExamManagementLayout";
+import AdminTransportManagementLayout from "../layouts/AdminTransportManagementLayout";
 import CreateStudentPage from "../pages/admin/CreateStudent";
 import RegisteredStudentsPage from "../pages/admin/RegisteredStudents";
 import CreateTeacherPage from "../pages/admin/CreateTeacher";
@@ -55,6 +56,8 @@ import TimetableManagementPage from "../pages/admin/TimetableManagement";
 import RegisteredTimetablePage from "../pages/admin/RegisteredTimetable";
 import ExamsResultsManagementPage from "../pages/admin/ExamsResultsManagement";
 import RegisteredExamsPage from "../pages/admin/RegisteredExams";
+import TransportManagementPage from "../pages/admin/TransportManagement";
+import RegisteredTransportPage from "../pages/admin/RegisteredTransport";
 import StudentDashboard from "../pages/student/Dashboard";
 import StudentAttendancePage from "../pages/student/Attendance";
 import StudentResultPage from "../pages/student/Result";
@@ -207,10 +210,11 @@ function AppRoutes() {
             path="/admin/library"
             element={<ModulePlaceholder title="Library Management" description="Add books, issue/return flow and fines tracking." />}
           />
-          <Route
-            path="/admin/transport"
-            element={<ModulePlaceholder title="Transport Management" description="Manage vehicles, routes and student transport mapping." />}
-          />
+          <Route path="/admin/transport" element={<AdminTransportManagementLayout />}>
+            <Route index element={<Navigate to="create" replace />} />
+            <Route path="create" element={<TransportManagementPage />} />
+            <Route path="registered" element={<RegisteredTransportPage />} />
+          </Route>
           <Route
             path="/admin/hostel"
             element={<ModulePlaceholder title="Hostel Management" description="Room allocation and hostel student assignment." />}
