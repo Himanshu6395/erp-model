@@ -6,7 +6,7 @@ const LOCAL_API = "http://localhost:5000";
 const PROD_API = "https://43.205.113.119";
 
 // Toggle this before deployment
-const USE_LOCAL = true;
+const USE_LOCAL = false;
 
 export const BASE_URL = USE_LOCAL ? LOCAL_API : PROD_API;
 
