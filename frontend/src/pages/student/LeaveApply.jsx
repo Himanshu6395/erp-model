@@ -1,8 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { CalendarDays, FileText, List } from "lucide-react";
+import Loader from "../../components/Loader";
 import { studentService } from "../../services/studentService";
+import {
+  PageCard,
+  PageHeader,
+  InfoGrid,
+  inputClass,
+  labelClass,
+  btnPrimary,
+  btnSecondary,
+} from "./studentPageUi";
 
 const LEAVE_TYPES = [
   { value: "SICK", label: "Sick" },
@@ -85,7 +95,7 @@ function StudentLeaveApplyPage() {
     }
   };
 
-  if (loading) return <p className="text-sm text-gray-500">Loading profile…</p>;
+  if (loading) return <Loader text="Loading profile…" />;
 
   const stu = profile;
   const className = stu?.classId?.name || stu?.classId?.section || "—";
@@ -93,42 +103,34 @@ function StudentLeaveApplyPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Apply for leave</h1>
-          <p className="text-sm text-gray-600">Request is sent to your class teacher for approval.</p>
-        </div>
-        <Link to="/student/leaves" className="btn-secondary w-fit text-sm">
-          View my leaves
-        </Link>
-      </div>
+      <PageHeader
+        badge="Leave"
+        title="Apply for leave"
+        subtitle="Request is sent to your class teacher for approval."
+        actions={
+          <Link to="/student/leaves" className={btnSecondary}>
+            <List className="h-4 w-4" />
+            View my leaves
+          </Link>
+        }
+      />
 
-      <FormCard title="Leave application" subtitle="Fields marked * are required. Dates use your local calendar day count.">
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div className="grid gap-4 rounded-lg border border-gray-100 bg-gray-50 p-4 sm:grid-cols-2">
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500">Student name</p>
-              <p className="font-medium text-gray-900">{stu?.userId?.name || "—"}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500">Student ID</p>
-              <p className="font-medium text-gray-900">{stu?.rollNumber || String(stu?._id || "").slice(-8) || "—"}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500">Class</p>
-              <p className="font-medium text-gray-900">{className}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500">Section</p>
-              <p className="font-medium text-gray-900">{section}</p>
-            </div>
-          </div>
+      <PageCard title="Leave application" subtitle="Fields marked * are required. Dates use your local calendar day count." icon={FileText}>
+        <form onSubmit={onSubmit} className="space-y-5">
+          <InfoGrid
+            items={[
+              { label: "Student name", value: stu?.userId?.name },
+              { label: "Student ID", value: stu?.rollNumber || String(stu?._id || "").slice(-8) },
+              { label: "Class", value: className },
+              { label: "Section", value: section },
+            ]}
+          />
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Leave type *</span>
+            <div>
+              <label className={labelClass}>Leave type *</label>
               <select
-                className="input mt-1 w-full"
+                className={inputClass}
                 value={form.leaveType}
                 onChange={(e) => setForm((p) => ({ ...p, leaveType: e.target.value }))}
                 required
@@ -139,82 +141,89 @@ function StudentLeaveApplyPage() {
                   </option>
                 ))}
               </select>
-            </label>
-            <div className="block text-sm">
-              <span className="font-medium text-gray-700">Total days</span>
-              <div className="input mt-1 flex items-center bg-white text-gray-800">{totalDays || "—"}</div>
             </div>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">From date *</span>
+            <div>
+              <label className={labelClass}>Total days</label>
+              <div className={`${inputClass} flex items-center bg-slate-50`}>{totalDays || "—"}</div>
+            </div>
+            <div>
+              <label className={labelClass}>From date *</label>
               <input
                 type="date"
-                className="input mt-1 w-full"
+                className={inputClass}
                 value={form.fromDate}
                 onChange={(e) => setForm((p) => ({ ...p, fromDate: e.target.value }))}
                 required
               />
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">To date *</span>
+            </div>
+            <div>
+              <label className={labelClass}>To date *</label>
               <input
                 type="date"
-                className="input mt-1 w-full"
+                className={inputClass}
                 value={form.toDate}
                 onChange={(e) => setForm((p) => ({ ...p, toDate: e.target.value }))}
                 required
               />
-            </label>
+            </div>
           </div>
 
-          <label className="block text-sm">
-            <span className="font-medium text-gray-700">Reason *</span>
+          {totalDays && totalDays !== "—" ? (
+            <p className="text-sm font-medium text-brand-700">
+              <CalendarDays className="mr-1 inline h-4 w-4" />
+              {totalDays} day(s) selected
+            </p>
+          ) : null}
+
+          <div>
+            <label className={labelClass}>Reason *</label>
             <textarea
-              className="input mt-1 min-h-[100px] w-full"
+              className={`${inputClass} min-h-[100px]`}
               value={form.reason}
               onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value }))}
               required
               placeholder="Describe why you need leave…"
             />
-          </label>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Contact number *</span>
+            <div>
+              <label className={labelClass}>Contact number *</label>
               <input
                 type="tel"
-                className="input mt-1 w-full"
+                className={inputClass}
                 value={form.contactPhone}
                 onChange={(e) => setForm((p) => ({ ...p, contactPhone: e.target.value }))}
                 required
               />
-            </label>
-            <label className="block text-sm">
-              <span className="font-medium text-gray-700">Parent / guardian name *</span>
+            </div>
+            <div>
+              <label className={labelClass}>Parent / guardian name *</label>
               <input
-                className="input mt-1 w-full"
+                className={inputClass}
                 value={form.parentName}
                 onChange={(e) => setForm((p) => ({ ...p, parentName: e.target.value }))}
                 required
               />
-            </label>
+            </div>
           </div>
 
-          <label className="block text-sm">
-            <span className="font-medium text-gray-700">Attachment (optional)</span>
+          <div>
+            <label className={labelClass}>Attachment (optional)</label>
             <input
               type="file"
               accept=".pdf,.jpg,.jpeg,.png,.webp"
-              className="mt-1 block w-full text-sm text-gray-600"
+              className="mt-1 block w-full text-sm text-slate-600"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
-            <span className="text-xs text-gray-500">PDF or image, max 5 MB (e.g. medical certificate)</span>
-          </label>
+            <span className="mt-1 block text-xs text-slate-500">PDF or image, max 5 MB (e.g. medical certificate)</span>
+          </div>
 
-          <button type="submit" className="btn-primary" disabled={submitting}>
+          <button type="submit" className={btnPrimary} disabled={submitting}>
             {submitting ? "Submitting…" : "Submit leave request"}
           </button>
         </form>
-      </FormCard>
+      </PageCard>
     </div>
   );
 }

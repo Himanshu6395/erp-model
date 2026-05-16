@@ -138,6 +138,8 @@ function Sidebar({ role, mobileOpen, onClose }) {
   const isSuperAdmin = role === roles.SUPER_ADMIN;
   const isSchoolAdmin = role === roles.SCHOOL_ADMIN;
   const isTeacher = role === roles.TEACHER;
+  const isStudent = role === roles.STUDENT;
+  const compactNav = isTeacher || isStudent;
   const { displayName } = useSchoolBranding();
   const { settings: platform } = usePlatformSettings();
 
@@ -165,14 +167,14 @@ function Sidebar({ role, mobileOpen, onClose }) {
       <aside
         id="dashboard-sidebar"
         style={{ backgroundColor: "var(--erp-sidebar-bg, #111827)" }}
-        className={`${isSuperAdmin || isTeacher ? "sidebar-thin-scrollbar" : "hide-scrollbar"} fixed left-0 top-0 z-[60] flex h-screen ${
-          isTeacher ? "w-52" : "w-64"
+        className={`${isSuperAdmin || compactNav ? "sidebar-thin-scrollbar" : "hide-scrollbar"} fixed left-0 top-0 z-[60] flex h-screen ${
+          compactNav ? "w-52" : "w-64"
         } flex-col overflow-hidden border-r border-gray-800 text-gray-200 transition-transform duration-200 ease-out md:translate-x-0 ${
           mobileOpen ? "translate-x-0 shadow-xl" : "-translate-x-full md:shadow-none"
         }`}
       >
         {!isSuperAdmin ? (
-          <div className={`flex shrink-0 items-center justify-between gap-2 border-b border-gray-800 ${isTeacher ? "px-3 py-3" : "px-4 py-4"}`}>
+          <div className={`flex shrink-0 items-center justify-between gap-2 border-b border-gray-800 ${compactNav ? "px-3 py-3" : "px-4 py-4"}`}>
             <Link to="/" className="flex min-w-0 items-center gap-2.5" onClick={onClose}>
               <BrandingLogo size={36} className="shrink-0" />
               <span className="truncate text-lg font-bold tracking-wide text-white">
@@ -226,7 +228,7 @@ function Sidebar({ role, mobileOpen, onClose }) {
 
         <nav
           className={`min-h-0 flex-1 space-y-0.5 overflow-y-auto py-2 ${
-            isTeacher ? "sidebar-thin-scrollbar px-2" : "px-3 py-3"
+            compactNav ? "sidebar-thin-scrollbar px-2" : "px-3 py-3"
           } ${isSuperAdmin ? "sidebar-thin-scrollbar" : ""}`}
         >
           {menu.map((item) => {
@@ -281,7 +283,7 @@ function Sidebar({ role, mobileOpen, onClose }) {
                 onClick={onClose}
                 className={({ isActive }) =>
                   `flex items-center gap-2 rounded-xl font-medium transition ${
-                    isTeacher ? "px-2.5 py-2 text-[0.8125rem]" : "px-3 py-2.5 text-sm"
+                    compactNav ? "px-2.5 py-2 text-[0.8125rem]" : "px-3 py-2.5 text-sm"
                   } ${isActive ? "bg-brand-600 text-white shadow-md" : "hover:bg-gray-800"}`
                 }
               >

@@ -114,3 +114,18 @@ html[data-erp-theme="dark"] .card {
   background: rgba(148, 163, 184, 0.4);
   border-radius: 999px;
 }
+
+.student-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+.student-table-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.student-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
+}

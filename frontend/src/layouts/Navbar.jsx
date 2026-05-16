@@ -35,6 +35,8 @@ function Navbar({ onOpenMobileNav, mobileNavOpen }) {
   const isSuperAdmin = user?.role === roles.SUPER_ADMIN;
   const isSchoolAdmin = user?.role === roles.SCHOOL_ADMIN;
   const isTeacher = user?.role === roles.TEACHER;
+  const isStudent = user?.role === roles.STUDENT;
+  const compactSidebar = isTeacher || isStudent;
   const teacherProfile = useTeacherProfile();
 
   const displayName = isTeacher
@@ -63,7 +65,7 @@ function Navbar({ onOpenMobileNav, mobileNavOpen }) {
   return (
     <header
       className={`fixed left-0 right-0 top-0 z-40 border-b border-white/70 px-4 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.28)] backdrop-blur-xl md:px-6 ${
-        isTeacher ? "md:left-52" : "md:left-64"
+        compactSidebar ? "md:left-52" : "md:left-64"
       }`}
       style={{ backgroundColor: "var(--erp-header-bg, rgba(255,255,255,0.8))" }}
     >

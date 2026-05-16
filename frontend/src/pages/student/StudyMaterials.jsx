@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { BookOpen, Download, ExternalLink, FileText, X } from "lucide-react";
 import { studentService } from "../../services/studentService";
 import { resolveUploadUrl } from "../../utils/apiOrigin";
+import { PageHeader, PageCard, EmptyState, inputClass, btnPrimary, btnSecondary } from "./studentPageUi";
 
 const TYPE_LABELS = {
   NOTES: "Notes",
@@ -16,7 +17,7 @@ const TYPE_LABELS = {
 const PRIORITY_RING = {
   HIGH: "ring-2 ring-red-200 bg-red-50",
   MEDIUM: "ring-1 ring-amber-200 bg-amber-50",
-  LOW: "ring-1 ring-gray-200 bg-gray-50",
+  LOW: "ring-1 ring-slate-200 bg-slate-50",
 };
 
 function youtubeId(url) {
@@ -89,15 +90,17 @@ function StudentStudyMaterialsPage() {
 
   return (
     <div className="space-y-6">
-      <FormCard title="Study materials" subtitle="Published resources for your class and section (read-only).">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <PageHeader badge="Academics" title="Study materials" subtitle="Published resources for your class and section (read-only)." />
+
+      <PageCard title="Browse materials" subtitle="Filter by subject, type, or search by title." icon={BookOpen}>
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <input
-            className="input min-w-[200px] flex-1"
+            className={`${inputClass} min-w-[200px] flex-1`}
             placeholder="Search by title…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select className="input w-full sm:w-48" value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
+          <select className={`${inputClass} w-full sm:w-48`} value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
             <option value="">All subjects</option>
             {subjectOptions.map((s) => (
               <option key={s.id} value={s.id}>
@@ -105,7 +108,7 @@ function StudentStudyMaterialsPage() {
               </option>
             ))}
           </select>
-          <select className="input w-full sm:w-48" value={materialType} onChange={(e) => setMaterialType(e.target.value)}>
+          <select className={`${inputClass} w-full sm:w-48`} value={materialType} onChange={(e) => setMaterialType(e.target.value)}>
             <option value="">All types</option>
             {Object.entries(TYPE_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -115,79 +118,86 @@ function StudentStudyMaterialsPage() {
           </select>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {items.map((row) => {
-            const yt = row.externalLink ? youtubeId(row.externalLink) : null;
-            const pr = PRIORITY_RING[row.priority] || PRIORITY_RING.MEDIUM;
-            return (
-              <article key={row._id} className={`rounded-xl p-4 ${pr}`}>
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{row.title}</h3>
-                    <p className="text-sm text-gray-600">
-                      {row.subjectName}
-                      {row.topic ? ` · ${row.topic}` : ""}
-                    </p>
+        {!items.length ? (
+          <EmptyState icon={BookOpen} title="No study materials" message="Try adjusting your filters or check back later." />
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {items.map((row) => {
+              const yt = row.externalLink ? youtubeId(row.externalLink) : null;
+              const pr = PRIORITY_RING[row.priority] || PRIORITY_RING.MEDIUM;
+              return (
+                <article key={row._id} className={`rounded-2xl p-4 ${pr}`}>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">{row.title}</h3>
+                      <p className="text-sm text-slate-600">
+                        {row.subjectName}
+                        {row.topic ? ` · ${row.topic}` : ""}
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                      {TYPE_LABELS[row.materialType] || row.materialType}
+                    </span>
                   </div>
-                  <span className="rounded-full bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700">
-                    {TYPE_LABELS[row.materialType] || row.materialType}
-                  </span>
-                </div>
-                {row.description ? <p className="mt-2 text-sm text-gray-700">{row.description}</p> : null}
-                <p className="mt-2 text-xs text-gray-500">
-                  Teacher: {row.teacherName || "—"} · Uploaded:{" "}
-                  {row.uploadDate ? new Date(row.uploadDate).toLocaleDateString() : "—"}
-                </p>
-                {yt && (
-                  <div className="mt-3 aspect-video w-full overflow-hidden rounded-lg bg-black">
-                    <iframe
-                      title={row.title}
-                      className="h-full w-full"
-                      src={`https://www.youtube.com/embed/${yt}`}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
+                  {row.description ? <p className="mt-2 text-sm text-slate-700">{row.description}</p> : null}
+                  <p className="mt-2 text-xs text-slate-500">
+                    Teacher: {row.teacherName || "—"} · Uploaded:{" "}
+                    {row.uploadDate ? new Date(row.uploadDate).toLocaleDateString() : "—"}
+                  </p>
+                  {yt && (
+                    <div className="mt-3 aspect-video w-full overflow-hidden rounded-xl bg-black">
+                      <iframe
+                        title={row.title}
+                        className="h-full w-full"
+                        src={`https://www.youtube.com/embed/${yt}`}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {row.externalLink && (
+                      <a className={btnPrimary} href={row.externalLink} target="_blank" rel="noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                        Open link
+                      </a>
+                    )}
+                    {row.fileUrl && /\.pdf($|\?)/i.test(row.fileUrl) && (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                        onClick={() => setPreview(resolveUploadUrl(row.fileUrl))}
+                      >
+                        <FileText className="h-4 w-4" />
+                        Preview PDF
+                      </button>
+                    )}
+                    {row.fileUrl && row.allowDownload && (
+                      <button type="button" className={btnSecondary} onClick={() => handleDownload(row)}>
+                        <Download className="h-4 w-4" />
+                        Download file
+                      </button>
+                    )}
                   </div>
-                )}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {row.externalLink && (
-                    <a className="btn-primary inline-flex text-sm" href={row.externalLink} target="_blank" rel="noreferrer">
-                      Open link
-                    </a>
-                  )}
-                  {row.fileUrl && /\.pdf($|\?)/i.test(row.fileUrl) && (
-                    <button
-                      type="button"
-                      className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-800"
-                      onClick={() => setPreview(resolveUploadUrl(row.fileUrl))}
-                    >
-                      Preview PDF
-                    </button>
-                  )}
-                  {row.fileUrl && row.allowDownload && (
-                    <button type="button" className="btn-secondary text-sm" onClick={() => handleDownload(row)}>
-                      Download file
-                    </button>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-        {!items.length && <p className="text-center text-gray-500">No study materials match your filters.</p>}
-      </FormCard>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </PageCard>
 
       {preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog">
-          <div className="relative flex h-[85vh] w-full max-w-4xl flex-col rounded-xl bg-white shadow-xl">
+          <div className="relative flex h-[85vh] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-xl">
             <button
               type="button"
-              className="absolute right-3 top-3 z-10 rounded-full bg-gray-200 px-3 py-1 text-sm"
+              className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-700"
               onClick={() => setPreview(null)}
             >
+              <X className="h-4 w-4" />
               Close
             </button>
-            <iframe title="PDF preview" className="h-full w-full flex-1 rounded-xl" src={preview} />
+            <iframe title="PDF preview" className="h-full w-full flex-1 rounded-2xl" src={preview} />
           </div>
         </div>
       )}

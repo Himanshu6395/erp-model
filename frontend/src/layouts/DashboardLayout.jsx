@@ -12,6 +12,8 @@ function DashboardLayout() {
   const { user } = useAuth();
   const showGlobalBanner = SCHOOL_PORTAL_ROLES.includes(user?.role);
   const isTeacher = user?.role === roles.TEACHER;
+  const isStudent = user?.role === roles.STUDENT;
+  const compactSidebar = isTeacher || isStudent;
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ function DashboardLayout() {
 
   return (
     <div
-      className={`h-screen overflow-hidden ${isTeacher ? "erp-sidebar-compact" : ""}`}
+      className={`h-screen overflow-hidden ${compactSidebar ? "erp-sidebar-compact" : ""}`}
       style={{ background: "var(--erp-page-bg)", fontSize: "var(--erp-font-size-base)" }}
     >
       <Sidebar
@@ -35,7 +37,7 @@ function DashboardLayout() {
       />
       <div
         className="h-full md:pl-[var(--erp-sidebar-width,16rem)]"
-        style={isTeacher ? { "--erp-sidebar-width": "13rem" } : undefined}
+        style={compactSidebar ? { "--erp-sidebar-width": "13rem" } : undefined}
       >
         <Navbar onOpenMobileNav={() => setMobileNavOpen(true)} mobileNavOpen={mobileNavOpen} />
         <main className="h-screen overflow-y-auto px-4 pb-4 pt-20 md:px-6 md:pb-6 md:pt-24">

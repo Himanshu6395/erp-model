@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { MessageSquare, Star } from "lucide-react";
 import { studentService } from "../../services/studentService";
+import { PageHeader, PageCard, EmptyState, inputClass, btnPrimary } from "./studentPageUi";
 
 function StudentFeedbackPage() {
   const [message, setMessage] = useState("");
@@ -34,34 +35,39 @@ function StudentFeedbackPage() {
 
   return (
     <div className="space-y-6">
-      <FormCard title="Feedback" subtitle="Submit feedback and view previous entries.">
-        <div className="grid gap-3">
-          <textarea className="input min-h-24" placeholder="Write feedback" value={message} onChange={(e) => setMessage(e.target.value)} />
-          <select className="input w-40" value={rating} onChange={(e) => setRating(Number(e.target.value))}>
+      <PageHeader badge="Support" title="Feedback" subtitle="Share your experience and view previous submissions." />
+
+      <PageCard title="Submit feedback" subtitle="Your feedback helps us improve the portal." icon={MessageSquare}>
+        <div className="grid gap-4">
+          <textarea className={`${inputClass} min-h-24`} placeholder="Write feedback" value={message} onChange={(e) => setMessage(e.target.value)} />
+          <select className={`${inputClass} w-40`} value={rating} onChange={(e) => setRating(Number(e.target.value))}>
             {[1, 2, 3, 4, 5].map((r) => (
               <option key={r} value={r}>
                 Rating {r}
               </option>
             ))}
           </select>
-          <button className="btn-primary w-fit" type="button" onClick={submit}>
-            Submit Feedback
+          <button className={`${btnPrimary} w-fit`} type="button" onClick={submit}>
+            Submit feedback
           </button>
         </div>
-      </FormCard>
+      </PageCard>
 
-      <FormCard title="Previous Feedback" subtitle="Your submitted feedback history.">
-        <div className="space-y-2 text-sm">
-          {history.map((item) => (
-            <div key={item._id} className="rounded border border-gray-100 bg-gray-50 p-3">
-              <div className="font-medium text-gray-900">Rating: {item.rating}/5</div>
-              <div className="text-gray-600">{item.message}</div>
-              <div className="text-gray-500">{new Date(item.createdAt).toLocaleString()}</div>
-            </div>
-          ))}
-          {!history.length && <div className="text-gray-500">No feedback yet.</div>}
-        </div>
-      </FormCard>
+      <PageCard title="Previous feedback" subtitle="Your submitted feedback history." icon={Star}>
+        {!history.length ? (
+          <EmptyState icon={Star} title="No feedback yet" message="Your submissions will appear here." />
+        ) : (
+          <div className="space-y-3">
+            {history.map((item) => (
+              <div key={item._id} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                <div className="font-semibold text-slate-900">Rating: {item.rating}/5</div>
+                <p className="mt-1 text-sm text-slate-600">{item.message}</p>
+                <p className="mt-2 text-xs text-slate-500">{new Date(item.createdAt).toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </PageCard>
     </div>
   );
 }
