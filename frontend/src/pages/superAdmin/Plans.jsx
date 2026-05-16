@@ -11,7 +11,9 @@ import {
   X,
 } from "lucide-react";
 import Loader from "../../components/Loader";
+import ConfirmDeleteModal from "../../components/superAdmin/ConfirmDeleteModal";
 import { superAdminOpsService } from "../../services/superAdminOpsService";
+import { usePlatformSettings } from "../../hooks/usePlatformSettings";
 
 const defaultForm = {
   name: "",
@@ -49,11 +51,13 @@ const FEATURE_LABELS = {
 };
 
 function PlansPage() {
+  const { formatCurrency } = usePlatformSettings();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(defaultForm);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -127,14 +131,16 @@ function PlansPage() {
     }
   };
 
-  const remove = async (planId) => {
-    if (!window.confirm("Delete this plan? Subscriptions using it may be affected.")) return;
+  const confirmDeletePlan = async () => {
+    if (!deleteTarget) return;
     try {
-      await superAdminOpsService.deletePlan(planId);
+      await superAdminOpsService.deletePlan(deleteTarget.id);
       toast.success("Plan deleted");
+      setDeleteTarget(null);
       load();
     } catch (error) {
       toast.error(error.message);
+      throw error;
     }
   };
 
@@ -222,7 +228,7 @@ function PlansPage() {
                     <div className="min-w-0">
                       <h2 className="text-lg font-bold text-slate-900">{plan.name}</h2>
                       <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                        <span className="text-2xl font-bold tabular-nums text-slate-900">₹{Number(plan.price || 0).toLocaleString()}</span>
+                        <span className="text-2xl font-bold tabular-nums text-slate-900">{formatCurrency(plan.price)}</span>
                         <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-700 ring-1 ring-slate-200/80">
                           {plan.billingCycle}
                         </span>
@@ -282,7 +288,7 @@ function PlansPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => remove(plan._id)}
+                      onClick={() => setDeleteTarget({ id: plan._id, name: plan.name })}
                       className="inline-flex items-center justify-center rounded-lg border border-rose-200 bg-rose-50/50 px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100/80"
                       aria-label={`Delete ${plan.name}`}
                     >
@@ -415,6 +421,16 @@ function PlansPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDeletePlan}
+        title="Delete plan"
+        itemName={deleteTarget?.name}
+        message="Subscriptions using this plan may be affected. This action cannot be undone."
+        confirmLabel="Delete plan"
+      />
     </div>
   );
 }

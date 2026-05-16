@@ -11,17 +11,26 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (config.data instanceof FormData) {
+    if (config.headers) {
+      delete config.headers["Content-Type"];
+      delete config.headers["content-type"];
+    }
+  }
   return config;
 });
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const data = error?.response?.data;
+    const fieldErrors = Array.isArray(data?.errors)
+      ? data.errors.map((e) => e.msg || e.message).filter(Boolean)
+      : [];
     const message =
-      error?.response?.data?.message ||
-      error?.response?.data?.error ||
-      error.message ||
-      "Something went wrong";
+      fieldErrors.length > 0
+        ? fieldErrors.join(". ")
+        : data?.message || data?.error || error.message || "Something went wrong";
     return Promise.reject(new Error(message));
   }
 );

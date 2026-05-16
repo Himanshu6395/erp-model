@@ -643,7 +643,7 @@ function HomePage() {
                 Our School Management System helps institutions handle student records, attendance,
                 fees, communication, and day-to-day operations from one dashboard—so administrators
                 save time, reduce paperwork, and keep parents and staff aligned without juggling
-                spreadsheets or disconnected tools.
+                spreadsheets or disconnected toolss.
               </p>
               <Link
                 to="/demo"

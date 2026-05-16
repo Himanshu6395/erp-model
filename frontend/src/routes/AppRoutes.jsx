@@ -30,6 +30,22 @@ import SecurityDashboardPage from "../pages/superAdmin/SecurityDashboard";
 import LoginActivityPage from "../pages/superAdmin/LoginActivity";
 import BlockedSchoolsPage from "../pages/superAdmin/BlockedSchools";
 import GlobalAnnouncementPage from "../pages/superAdmin/GlobalAnnouncement";
+import SuperAdminSettingsLayout from "../layouts/SuperAdminSettingsLayout";
+import ProfileSettingsPage from "../pages/superAdmin/settings/ProfileSettingsPage";
+import SecuritySettingsPage from "../pages/superAdmin/settings/SecuritySettingsPage";
+import PlatformSettingsPage from "../pages/superAdmin/settings/PlatformSettingsPage";
+import EmailSmtpSettingsPage from "../pages/superAdmin/settings/EmailSmtpSettingsPage";
+import NotificationSettingsPage from "../pages/superAdmin/settings/NotificationSettingsPage";
+import BillingSettingsPage from "../pages/superAdmin/settings/BillingSettingsPage";
+import PermissionsSettingsPage from "../pages/superAdmin/settings/PermissionsSettingsPage";
+import ThemeSettingsPage from "../pages/superAdmin/settings/ThemeSettingsPage";
+import SchoolAdminSettingsLayout from "../layouts/SchoolAdminSettingsLayout";
+import SchoolAdminProfilePage from "../pages/admin/settings/SchoolAdminProfilePage";
+import SchoolAdminSecurityPage from "../pages/admin/settings/SchoolAdminSecurityPage";
+import SchoolSettingsPage from "../pages/admin/settings/SchoolSettingsPage";
+import SchoolEmailSmtpPage from "../pages/admin/settings/SchoolEmailSmtpPage";
+import SchoolNotificationSettingsPage from "../pages/admin/settings/SchoolNotificationSettingsPage";
+import SchoolThemeSettingsPage from "../pages/admin/settings/SchoolThemeSettingsPage";
 import AdminDashboard from "../pages/admin/Dashboard";
 import AdminStudentManagementLayout from "../layouts/AdminStudentManagementLayout";
 import AdminTeacherManagementLayout from "../layouts/AdminTeacherManagementLayout";
@@ -39,6 +55,11 @@ import AdminTimetableManagementLayout from "../layouts/AdminTimetableManagementL
 import AdminNoticeManagementLayout from "../layouts/AdminNoticeManagementLayout";
 import AdminExamManagementLayout from "../layouts/AdminExamManagementLayout";
 import AdminTransportManagementLayout from "../layouts/AdminTransportManagementLayout";
+import AdminInquiryLayout from "../layouts/AdminInquiryLayout";
+import InquiryListPage from "../pages/admin/inquiries/InquiryListPage";
+import InquiryCreatePage from "../pages/admin/inquiries/InquiryCreatePage";
+import InquiryAnalyticsPage from "../pages/admin/inquiries/InquiryAnalyticsPage";
+import TeacherInquiriesPage from "../pages/teacher/TeacherInquiriesPage";
 import CreateStudentPage from "../pages/admin/CreateStudent";
 import RegisteredStudentsPage from "../pages/admin/RegisteredStudents";
 import CreateTeacherPage from "../pages/admin/CreateTeacher";
@@ -50,6 +71,7 @@ import RegisteredNoticesPage from "../pages/admin/RegisteredNotices";
 import SubjectManagementPage from "../pages/admin/SubjectManagement";
 import RegisteredSubjectsPage from "../pages/admin/RegisteredSubjects";
 import AttendanceManagementPage from "../pages/admin/AttendanceManagement";
+import TeacherLeaveRequestsPage from "../pages/admin/TeacherLeaveRequests";
 import FeesManagementPage from "../pages/admin/FeesManagement";
 import ModulePlaceholder from "../pages/admin/ModulePlaceholder";
 import TimetableManagementPage from "../pages/admin/TimetableManagement";
@@ -93,6 +115,12 @@ import TeacherOnlineClassesPage from "../pages/teacher/OnlineClasses";
 import TeacherDoubtsPage from "../pages/teacher/Doubts";
 import TeacherNotificationsPage from "../pages/teacher/Notifications";
 import TeacherProfilePage from "../pages/teacher/Profile";
+import TeacherSettingsLayout from "../pages/teacher/settings/TeacherSettingsLayout";
+import ProfileSettingsTab from "../pages/teacher/settings/ProfileSettingsTab";
+import SecurityTab from "../pages/teacher/settings/SecurityTab";
+import PreferencesTab from "../pages/teacher/settings/PreferencesTab";
+import NotificationsTab from "../pages/teacher/settings/NotificationsTab";
+import AccountSettingsTab from "../pages/teacher/settings/AccountSettingsTab";
 import TeacherSalaryPage from "../pages/teacher/Salary";
 import TeacherActivitiesPage from "../pages/teacher/Activities";
 import TeacherStudentLeavesPage from "../pages/teacher/StudentLeaves";
@@ -161,6 +189,17 @@ function AppRoutes() {
           <Route path="/super-admin/login-activity" element={<LoginActivityPage />} />
           <Route path="/super-admin/blocked-schools" element={<BlockedSchoolsPage />} />
           <Route path="/super-admin/global-announcement" element={<GlobalAnnouncementPage />} />
+          <Route path="/super-admin/settings" element={<SuperAdminSettingsLayout />}>
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<ProfileSettingsPage />} />
+            <Route path="security" element={<SecuritySettingsPage />} />
+            <Route path="platform" element={<PlatformSettingsPage />} />
+            <Route path="email" element={<EmailSmtpSettingsPage />} />
+            <Route path="notifications" element={<NotificationSettingsPage />} />
+            <Route path="billing" element={<BillingSettingsPage />} />
+            <Route path="permissions" element={<PermissionsSettingsPage />} />
+            <Route path="theme" element={<ThemeSettingsPage />} />
+          </Route>
         </Route>
       </Route>
 
@@ -191,6 +230,7 @@ function AppRoutes() {
             <Route path="registered" element={<RegisteredSubjectsPage />} />
           </Route>
           <Route path="/admin/attendance" element={<AttendanceManagementPage />} />
+          <Route path="/admin/teacher-leaves" element={<TeacherLeaveRequestsPage />} />
           <Route path="/admin/fees" element={<FeesManagementPage />} />
           <Route path="/admin/exams-results" element={<AdminExamManagementLayout />}>
             <Route index element={<Navigate to="create" replace />} />
@@ -231,10 +271,15 @@ function AppRoutes() {
             path="/admin/reports"
             element={<ModulePlaceholder title="Reports & Analytics" description="Attendance, fee and performance reports with export capabilities." />}
           />
-          <Route
-            path="/admin/settings"
-            element={<ModulePlaceholder title="Settings" description="School profile, branding, theme and password/security settings." />}
-          />
+          <Route path="/admin/settings" element={<SchoolAdminSettingsLayout />}>
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<SchoolAdminProfilePage />} />
+            <Route path="security" element={<SchoolAdminSecurityPage />} />
+            <Route path="school" element={<SchoolSettingsPage />} />
+            <Route path="email" element={<SchoolEmailSmtpPage />} />
+            <Route path="notifications" element={<SchoolNotificationSettingsPage />} />
+            <Route path="theme" element={<SchoolThemeSettingsPage />} />
+          </Route>
           <Route
             path="/admin/roles"
             element={<ModulePlaceholder title="Roles & Permissions" description="Create sub-admin roles and assign granular permissions." />}
@@ -255,6 +300,12 @@ function AppRoutes() {
             <Route index element={<Navigate to="create" replace />} />
             <Route path="create" element={<NoticeManagementPage />} />
             <Route path="registered" element={<RegisteredNoticesPage />} />
+          </Route>
+          <Route path="/admin/inquiries" element={<AdminInquiryLayout />}>
+            <Route index element={<Navigate to="all" replace />} />
+            <Route path="all" element={<InquiryListPage />} />
+            <Route path="create" element={<InquiryCreatePage />} />
+            <Route path="analytics" element={<InquiryAnalyticsPage />} />
           </Route>
         </Route>
       </Route>
@@ -286,6 +337,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={[roles.TEACHER]} />}>
         <Route element={<DashboardLayout />}>
           <Route path="/teacher" element={<TeacherDashboard />} />
+          <Route path="/teacher/inquiries" element={<TeacherInquiriesPage />} />
           <Route path="/teacher/students" element={<TeacherStudentsPage />} />
           <Route path="/teacher/attendance" element={<TeacherAttendancePage />} />
           <Route path="/teacher/homework" element={<TeacherHomeworkPage />} />
@@ -302,6 +354,13 @@ function AppRoutes() {
           <Route path="/teacher/doubts" element={<TeacherDoubtsPage />} />
           <Route path="/teacher/notifications" element={<TeacherNotificationsPage />} />
           <Route path="/teacher/profile" element={<TeacherProfilePage />} />
+          <Route path="/teacher/settings" element={<TeacherSettingsLayout />}>
+            <Route path="profile" element={<ProfileSettingsTab />} />
+            <Route path="security" element={<SecurityTab />} />
+            <Route path="preferences" element={<PreferencesTab />} />
+            <Route path="notifications" element={<NotificationsTab />} />
+            <Route path="account" element={<AccountSettingsTab />} />
+          </Route>
           <Route path="/teacher/salary" element={<TeacherSalaryPage />} />
           <Route path="/teacher/activities" element={<TeacherActivitiesPage />} />
         </Route>

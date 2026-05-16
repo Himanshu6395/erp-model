@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Send, ChevronUp, MapPin, Phone, Mail, Clock } from "lucide-react";
+import { usePlatformSettings } from "../hooks/usePlatformSettings";
 
 const TOPO_BG =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-opacity='0.07' stroke-width='0.4' d='M0 50 Q25 25 50 50 T100 50 M0 30 Q30 10 60 30 T100 30 M0 70 Q35 90 70 70 T100 70'/%3E%3C/svg%3E\")";
@@ -19,6 +20,7 @@ function scrollToTop() {
 }
 
 function SiteFooter() {
+  const { settings: platform } = usePlatformSettings();
   const [newsletterEmail, setNewsletterEmail] = useState("");
 
   const onNewsletter = (e) => {
@@ -145,7 +147,7 @@ function SiteFooter() {
         <div className="relative mx-auto mt-12 max-w-6xl border-t border-white/10 px-4 pt-6 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <p className="text-center text-xs text-gray-500 sm:text-left">
-              Copyright © {new Date().getFullYear()} NexusCRM School ERP. All rights reserved.
+              Copyright © {new Date().getFullYear()} {platform.platformName}. All rights reserved.
             </p>
             <div className="flex items-center gap-3 text-xs font-medium">
               <Link to="/privacy-policy" className="text-gray-400 transition hover:text-white">

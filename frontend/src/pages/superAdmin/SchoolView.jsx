@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import Loader from "../../components/Loader";
+import ConfirmDeleteModal from "../../components/superAdmin/ConfirmDeleteModal";
 import { superAdminService } from "../../services/superAdminService";
 
 const toStringArray = (value) => (Array.isArray(value) ? value.join(", ") : "");
@@ -124,6 +125,7 @@ function SchoolViewPage() {
       navigate("/super-admin/schools");
     } catch (error) {
       toast.error(error.message);
+      throw error;
     }
   };
 
@@ -289,24 +291,15 @@ function SchoolViewPage() {
         </div>
       </section>
 
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-            <h4 className="text-lg font-semibold text-gray-900">Delete School</h4>
-            <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to delete this school? This action cannot be undone.
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <button className="btn-secondary" type="button" onClick={() => setShowDeleteModal(false)}>
-                Cancel
-              </button>
-              <button className="btn-primary border-red-600 bg-red-600 hover:bg-red-700" type="button" onClick={deleteSchool}>
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDeleteModal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={deleteSchool}
+        title="Delete school"
+        itemName={school?.name ? `${school.name} (${school.code})` : undefined}
+        message="All tenant data for this school will be permanently removed. This cannot be undone."
+        confirmLabel="Delete school"
+      />
     </div>
   );
 }

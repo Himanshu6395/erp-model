@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { Calendar, Printer } from "lucide-react";
 import { studentService } from "../../services/studentService";
+import { PageHeader, PageCard, EmptyState, inputClass, btnSecondary } from "./studentPageUi";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -64,11 +65,12 @@ function StudentTimetablePage() {
   const grid = useMemo(() => buildGrid(items), [items]);
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900">My timetable</h2>
-      <div className="mb-2 flex flex-wrap gap-2 print:hidden">
-        <input className="input w-40" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} />
-        <select className="input w-44" value={filterDay} onChange={(e) => setFilterDay(e.target.value)}>
+    <div className="space-y-6">
+      <PageHeader badge="Academics" title="My timetable" subtitle="Weekly class schedule based on your class and section." />
+
+      <div className="flex flex-wrap gap-2 print:hidden">
+        <input className={`${inputClass} w-40`} value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} />
+        <select className={`${inputClass} w-44`} value={filterDay} onChange={(e) => setFilterDay(e.target.value)}>
           <option value="">All days (weekly)</option>
           {DAYS.map((d) => (
             <option key={d} value={d}>
@@ -76,58 +78,62 @@ function StudentTimetablePage() {
             </option>
           ))}
         </select>
-        <button type="button" className="btn-secondary" onClick={() => window.print()}>
+        <button type="button" className={btnSecondary} onClick={() => window.print()}>
+          <Printer className="h-4 w-4" />
           Print
         </button>
       </div>
 
-      <FormCard title="Class schedule" subtitle="Based on your class and section. Read-only.">
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="border border-gray-200 bg-gray-100 px-2 py-2 text-left">Day</th>
-                {grid.periods.map((p) => (
-                  <th key={p} className="border border-gray-200 bg-gray-100 px-2 py-2 text-center">
-                    P{p}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {DAYS.filter((d) => !filterDay || d === filterDay).map((d) => (
-                <tr key={d}>
-                  <td className="border border-gray-200 bg-gray-50 px-2 py-2 font-medium">{d}</td>
-                  {grid.periods.map((p) => {
-                    const cell = grid.map[d]?.[p];
-                    return (
-                      <td
-                        key={p}
-                        className="border border-gray-200 px-1 py-2 align-top text-xs"
-                        style={cell ? cellStyle(labelSlot(cell)) : undefined}
-                      >
-                        {cell ? (
-                          <>
-                            <div className="font-semibold">{labelSlot(cell)}</div>
-                            <div className="text-gray-600">
-                              {cell.startTime}-{cell.endTime}
-                            </div>
-                            <div className="text-gray-500">{teacherName(cell)}</div>
-                            {cell.roomNumber && <div className="text-gray-400">Room {cell.roomNumber}</div>}
-                          </>
-                        ) : (
-                          <span className="text-gray-300">—</span>
-                        )}
-                      </td>
-                    );
-                  })}
+      <PageCard title="Class schedule" subtitle="Based on your class and section. Read-only." icon={Calendar}>
+        {!items.length ? (
+          <EmptyState icon={Calendar} title="No timetable data" message="Your schedule will appear once published by the school." />
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-slate-200/80">
+            <table className="min-w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-bold text-slate-600">Day</th>
+                  {grid.periods.map((p) => (
+                    <th key={p} className="border border-slate-200 bg-slate-50 px-2 py-2 text-center font-bold text-slate-600">
+                      P{p}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {!items.length && <div className="text-sm text-gray-500">No timetable data available.</div>}
-      </FormCard>
+              </thead>
+              <tbody>
+                {DAYS.filter((d) => !filterDay || d === filterDay).map((d) => (
+                  <tr key={d}>
+                    <td className="border border-slate-200 bg-slate-50/80 px-3 py-2 font-semibold text-slate-800">{d}</td>
+                    {grid.periods.map((p) => {
+                      const cell = grid.map[d]?.[p];
+                      return (
+                        <td
+                          key={p}
+                          className="border border-slate-200 px-1 py-2 align-top text-xs"
+                          style={cell ? cellStyle(labelSlot(cell)) : undefined}
+                        >
+                          {cell ? (
+                            <>
+                              <div className="font-semibold text-slate-900">{labelSlot(cell)}</div>
+                              <div className="text-slate-600">
+                                {cell.startTime}-{cell.endTime}
+                              </div>
+                              <div className="text-slate-500">{teacherName(cell)}</div>
+                              {cell.roomNumber && <div className="text-slate-400">Room {cell.roomNumber}</div>}
+                            </>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </PageCard>
     </div>
   );
 }

@@ -1,15 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { Banknote, Coins, Filter, Sparkles, Wallet } from "lucide-react";
+import { Banknote, Coins, Sparkles, Wallet } from "lucide-react";
 import Loader from "../../components/Loader";
+import FilterField from "../../components/superAdmin/FilterField";
+import SuperAdminFilterMenu from "../../components/superAdmin/SuperAdminFilterMenu";
 import { superAdminOpsService } from "../../services/superAdminOpsService";
+import { SA_INPUT_WITH_H, SA_SELECT_WITH_H, countActiveFilters } from "./superAdminUi";
+import { usePlatformSettings } from "../../hooks/usePlatformSettings";
 
 function PaymentsPage() {
+  const { formatCurrency, formatDateTime } = usePlatformSettings();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("");
   const [filterMethod, setFilterMethod] = useState("");
   const [filterSearch, setFilterSearch] = useState("");
+  const [draft, setDraft] = useState({ search: "", status: "", method: "" });
 
   const load = async () => {
     setLoading(true);
@@ -50,9 +56,22 @@ function PaymentsPage() {
     return Array.from(set);
   }, [payments]);
 
-  const filtersActive = Boolean(filterStatus || filterMethod || filterSearch.trim());
+  const filterBadgeCount = countActiveFilters({
+    search: filterSearch,
+    status: filterStatus,
+    method: filterMethod,
+  });
+
+  const syncDraft = () => setDraft({ search: filterSearch, status: filterStatus, method: filterMethod });
+
+  const applyFilters = () => {
+    setFilterSearch(draft.search);
+    setFilterStatus(draft.status);
+    setFilterMethod(draft.method);
+  };
 
   const clearFilters = () => {
+    setDraft({ search: "", status: "", method: "" });
     setFilterStatus("");
     setFilterMethod("");
     setFilterSearch("");
@@ -108,7 +127,7 @@ function PaymentsPage() {
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Paid total</p>
               <p className="text-xl font-bold tabular-nums text-slate-900 sm:text-2xl">
-                ₹{summary.totalPaid.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                {formatCurrency(summary.totalPaid)}
               </p>
             </div>
           </div>
@@ -116,70 +135,34 @@ function PaymentsPage() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-900/[0.06] ring-1 ring-slate-100/90">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-slate-800">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-brand-600 text-white shadow-sm">
-                <Filter className="h-4 w-4" aria-hidden />
-              </span>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">Filters</h2>
-                <p className="text-xs text-slate-500">Refine the ledger view on this device</p>
-              </div>
-            </div>
-            {filtersActive ? (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-              >
-                Clear all
-              </button>
-            ) : null}
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">School</label>
-              <input
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                placeholder="Search by school name…"
-                value={filterSearch}
-                onChange={(e) => setFilterSearch(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">Status</label>
-              <select
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="">All statuses</option>
-                <option value="PAID">Paid</option>
-                <option value="FAILED">Failed</option>
-                <option value="PENDING">Pending</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">Method</label>
-              <select
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                value={filterMethod}
-                onChange={(e) => setFilterMethod(e.target.value)}
-              >
-                <option value="">All methods</option>
-                {methods.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Showing <span className="font-semibold text-slate-700">{filtered.length}</span> of {payments.length} rows
-            {filtersActive ? " (filtered)" : ""}.
+        <div className="flex flex-col gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-sm text-slate-600">
+            Showing <span className="font-semibold text-slate-900">{filtered.length}</span> of {payments.length} rows
+            {filterBadgeCount ? <span className="text-slate-500"> (filtered)</span> : null}
           </p>
+          <SuperAdminFilterMenu activeCount={filterBadgeCount} onOpen={syncDraft} onApply={applyFilters} onClear={clearFilters}>
+            <div className="space-y-4">
+              <FilterField label="School">
+                <input className={SA_INPUT_WITH_H} placeholder="Search by school name…" value={draft.search} onChange={(e) => setDraft((d) => ({ ...d, search: e.target.value }))} />
+              </FilterField>
+              <FilterField label="Status">
+                <select className={SA_SELECT_WITH_H} value={draft.status} onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value }))}>
+                  <option value="">All statuses</option>
+                  <option value="PAID">Paid</option>
+                  <option value="FAILED">Failed</option>
+                  <option value="PENDING">Pending</option>
+                </select>
+              </FilterField>
+              <FilterField label="Method">
+                <select className={SA_SELECT_WITH_H} value={draft.method} onChange={(e) => setDraft((d) => ({ ...d, method: e.target.value }))}>
+                  <option value="">All methods</option>
+                  {methods.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </FilterField>
+            </div>
+          </SuperAdminFilterMenu>
         </div>
 
         <div className="overflow-x-auto">
@@ -203,7 +186,7 @@ function PaymentsPage() {
                       {row.method || "—"}
                     </span>
                   </td>
-                  <td className="py-4 pr-4 tabular-nums text-slate-600">{row.paidAt ? new Date(row.paidAt).toLocaleString() : "—"}</td>
+                  <td className="py-4 pr-4 tabular-nums text-slate-600">{formatDateTime(row.paidAt)}</td>
                   <td className="px-5 py-4 sm:px-6">
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ${

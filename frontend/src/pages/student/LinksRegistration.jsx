@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { ExternalLink, Link2 } from "lucide-react";
 import { studentService } from "../../services/studentService";
+import { PageHeader, PageCard, EmptyState, btnSecondary } from "./studentPageUi";
 
 function StudentLinksRegistrationPage() {
   const [links, setLinks] = useState([]);
@@ -18,20 +19,33 @@ function StudentLinksRegistrationPage() {
   }, []);
 
   return (
-    <FormCard title="Links / Registration" subtitle="Exam registration, course registration and external links.">
-      <div className="space-y-3 text-sm">
-        {links.map((item) => (
-          <div key={item._id} className="rounded border border-gray-100 bg-gray-50 p-3">
-            <div className="font-semibold text-gray-900">{item.title}</div>
-            <div className="text-gray-600">{item.type}</div>
-            <a className="text-brand-700 underline" href={item.url} target="_blank" rel="noreferrer">
-              Open Link
-            </a>
+    <div className="space-y-6">
+      <PageHeader badge="Resources" title="Links & registration" subtitle="Exam registration, course registration, and external links." />
+
+      <PageCard title="Available links" subtitle="Open links in a new tab to complete registration." icon={Link2}>
+        {!links.length ? (
+          <EmptyState icon={Link2} title="No registration links" message="Links from your school will appear here when available." />
+        ) : (
+          <div className="space-y-3">
+            {links.map((item) => (
+              <div
+                key={item._id}
+                className="flex flex-col gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <div className="font-semibold text-slate-900">{item.title}</div>
+                  <div className="text-sm text-slate-600">{item.type}</div>
+                </div>
+                <a className={btnSecondary} href={item.url} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  Open link
+                </a>
+              </div>
+            ))}
           </div>
-        ))}
-        {!links.length && <div className="text-gray-500">No registration links available.</div>}
-      </div>
-    </FormCard>
+        )}
+      </PageCard>
+    </div>
   );
 }
 

@@ -233,6 +233,41 @@ const changePassword = async (req, res) => {
   return res.json({ success: true, data });
 };
 
+const listTeacherLeavesAdmin = async (req, res) => {
+  const data = await adminService.listTeacherLeavesAdmin(req.user, req.query);
+  return res.json({ success: true, data });
+};
+
+const getTeacherLeaveStatsAdmin = async (req, res) => {
+  const data = await adminService.getTeacherLeaveStatsAdmin(req.user);
+  return res.json({ success: true, data });
+};
+
+const getTeacherLeaveChartsAdmin = async (req, res) => {
+  const data = await adminService.getTeacherLeaveChartsAdmin(req.user);
+  return res.json({ success: true, data });
+};
+
+const getTeacherLeaveByIdAdmin = async (req, res) => {
+  const data = await adminService.getTeacherLeaveByIdAdmin(req.user, req.params.leaveId);
+  return res.json({ success: true, data });
+};
+
+const decideTeacherLeaveAdmin = async (req, res) => {
+  const data = await adminService.decideTeacherLeaveAdmin(req.user, req.params.leaveId, req.body);
+  return res.json({ success: true, data });
+};
+
+const deleteTeacherLeaveAdmin = async (req, res) => {
+  const data = await adminService.deleteTeacherLeaveAdmin(req.user, req.params.leaveId);
+  return res.json({ success: true, data });
+};
+
+const getPendingTeacherLeaveBadge = async (req, res) => {
+  const data = await adminService.getPendingTeacherLeaveBadge(req.user);
+  return res.json({ success: true, data });
+};
+
 const createTimetableEntry = async (req, res) => {
   const data = await timetableAdminService.create(req.user, req.body);
   return res.status(201).json({ success: true, data });
@@ -435,4 +470,11 @@ export const adminController = {
   deleteReportCard,
   getExamMeritList,
   getExamDashboard,
+  listTeacherLeavesAdmin,
+  getTeacherLeaveStatsAdmin,
+  getTeacherLeaveChartsAdmin,
+  getTeacherLeaveByIdAdmin,
+  decideTeacherLeaveAdmin,
+  deleteTeacherLeaveAdmin,
+  getPendingTeacherLeaveBadge,
 };

@@ -74,6 +74,33 @@ const schoolSchema = new mongoose.Schema(
       primaryColor: { type: String, trim: true, default: "#0ea5e9" },
       secondaryColor: { type: String, trim: true, default: "#1f2937" },
     },
+    adminProfile: {
+      designation: { type: String, trim: true, default: "" },
+      avatarUrl: { type: String, default: "" },
+    },
+    smtp: {
+      host: { type: String, trim: true, default: "" },
+      port: { type: Number, default: 587 },
+      email: { type: String, trim: true, default: "" },
+      password: { type: String, default: "" },
+      senderEmail: { type: String, trim: true, default: "" },
+      senderName: { type: String, trim: true, default: "" },
+    },
+    notificationSettings: {
+      email: { type: Boolean, default: true },
+      sms: { type: Boolean, default: false },
+      inquiryAlerts: { type: Boolean, default: true },
+      attendanceAlerts: { type: Boolean, default: true },
+      feeAlerts: { type: Boolean, default: true },
+    },
+    panelTheme: {
+      mode: { type: String, enum: ["light", "dark"], default: "light" },
+      sidebarColor: { type: String, default: "#111827" },
+      headerColor: { type: String, default: "#ffffff" },
+      primaryColor: { type: String, default: "#2563eb" },
+      fontSize: { type: String, enum: ["small", "medium", "large"], default: "medium" },
+      borderRadius: { type: String, enum: ["small", "medium", "large"], default: "medium" },
+    },
     features: {
       attendanceModule: { type: Boolean, default: true },
       feesModule: { type: Boolean, default: true },
@@ -106,8 +133,9 @@ const schoolSchema = new mongoose.Schema(
     preferences: {
       timezone: { type: String, trim: true, default: "Asia/Kolkata" },
       language: { type: String, trim: true, default: "English" },
-      dateFormat: { type: String, trim: true, default: "DD-MM-YYYY" },
+      dateFormat: { type: String, trim: true, default: "DD/MM/YYYY" },
       timeFormat: { type: String, trim: true, default: "24h" },
+      academicSession: { type: String, trim: true, default: "" },
     },
   },
   { timestamps: true }

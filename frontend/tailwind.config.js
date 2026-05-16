@@ -7,9 +7,9 @@ export default {
         brand: {
           50: "#eef6ff",
           100: "#d9eaff",
-          500: "#2563eb",
-          600: "#1d4ed8",
-          700: "#1e40af",
+          500: "var(--erp-primary, #2563eb)",
+          600: "var(--erp-primary-hover, #1d4ed8)",
+          700: "var(--erp-primary, #1e40af)",
         },
         demo: {
           400: "#5cc8ef",

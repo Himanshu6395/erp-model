@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { CalendarDays, ClipboardList, Plus } from "lucide-react";
+import Loader from "../../components/Loader";
 import { studentService } from "../../services/studentService";
 import { resolveUploadUrl } from "../../utils/apiOrigin";
+import { PageCard, PageHeader, DataTable, EmptyState, btnPrimary } from "./studentPageUi";
 
 function statusClass(s) {
   if (s === "APPROVED") return "bg-emerald-100 text-emerald-800";
@@ -31,60 +33,59 @@ function StudentLeavesListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">My leave requests</h1>
-          <p className="text-sm text-gray-600">Track status and teacher remarks. Alerts also appear under Notifications.</p>
-        </div>
-        <Link to="/student/leaves/apply" className="btn-primary w-fit text-sm">
-          Apply for leave
-        </Link>
-      </div>
+      <PageHeader
+        badge="Leave"
+        title="My leave requests"
+        subtitle="Track status and teacher remarks. Alerts also appear under Notifications."
+        actions={
+          <Link to="/student/leaves/apply" className={btnPrimary}>
+            <Plus className="h-4 w-4" />
+            Apply for leave
+          </Link>
+        }
+      />
 
-      <FormCard title="All applications" subtitle="Leave ID is a short reference for this request.">
+      <PageCard title="All applications" subtitle="Leave ID is a short reference for this request." icon={ClipboardList}>
         {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
+          <Loader text="Loading leave requests…" />
+        ) : !rows.length ? (
+          <EmptyState icon={CalendarDays} title="No leave requests yet" message="Submit your first leave application to get started." />
         ) : (
-          <div className="overflow-x-auto">
+          <DataTable>
             <table className="min-w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-xs uppercase text-gray-500">
-                  <th className="py-2 pr-3">Leave ID</th>
-                  <th className="py-2 pr-3">Type</th>
-                  <th className="py-2 pr-3">From – To</th>
-                  <th className="py-2 pr-3">Days</th>
-                  <th className="py-2 pr-3">Status</th>
-                  <th className="py-2 pr-3">Teacher remarks</th>
-                  <th className="py-2 pr-3">Applied</th>
-                  <th className="py-2">File</th>
+                <tr className="border-b border-slate-200 bg-slate-50/80 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3">Leave ID</th>
+                  <th className="px-4 py-3">Type</th>
+                  <th className="px-4 py-3">From – To</th>
+                  <th className="px-4 py-3">Days</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Teacher remarks</th>
+                  <th className="px-4 py-3">Applied</th>
+                  <th className="px-4 py-3">File</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <tr key={r._id} className="border-b border-gray-100">
-                    <td className="py-2 pr-3 font-mono text-xs">{r.leaveDisplayId || r._id}</td>
-                    <td className="py-2 pr-3">{r.leaveType}</td>
-                    <td className="py-2 pr-3 whitespace-nowrap">
+                  <tr key={r._id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                    <td className="px-4 py-3 font-mono text-xs text-slate-700">{r.leaveDisplayId || r._id}</td>
+                    <td className="px-4 py-3 text-slate-800">{r.leaveType}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-700">
                       {new Date(r.fromDate).toLocaleDateString()} – {new Date(r.toDate).toLocaleDateString()}
                     </td>
-                    <td className="py-2 pr-3">{r.totalDays}</td>
-                    <td className="py-2 pr-3">
-                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusClass(r.status)}`}>
+                    <td className="px-4 py-3 text-slate-800">{r.totalDays}</td>
+                    <td className="px-4 py-3">
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusClass(r.status)}`}>
                         {r.status === "PENDING" ? "Pending" : r.status === "APPROVED" ? "Approved" : "Rejected"}
                       </span>
                     </td>
-                    <td className="max-w-[200px] py-2 pr-3 text-gray-600">{r.teacherRemarks || "—"}</td>
-                    <td className="py-2 pr-3 whitespace-nowrap text-gray-600">
+                    <td className="max-w-[200px] px-4 py-3 text-slate-600">{r.teacherRemarks || "—"}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-600">
                       {r.createdAt ? new Date(r.createdAt).toLocaleString() : "—"}
                     </td>
-                    <td className="py-2">
+                    <td className="px-4 py-3">
                       {r.attachmentUrl ? (
-                        <a
-                          href={resolveUploadUrl(r.attachmentUrl)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-brand-600 hover:underline"
-                        >
+                        <a href={resolveUploadUrl(r.attachmentUrl)} target="_blank" rel="noreferrer" className="font-medium text-brand-600 hover:underline">
                           View
                         </a>
                       ) : (
@@ -95,10 +96,9 @@ function StudentLeavesListPage() {
                 ))}
               </tbody>
             </table>
-            {!rows.length && <p className="py-6 text-center text-gray-500">No leave requests yet.</p>}
-          </div>
+          </DataTable>
         )}
-      </FormCard>
+      </PageCard>
     </div>
   );
 }

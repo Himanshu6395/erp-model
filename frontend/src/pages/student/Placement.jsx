@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { Briefcase, ExternalLink, History } from "lucide-react";
 import { studentService } from "../../services/studentService";
+import { PageHeader, PageCard, EmptyState, btnPrimary, btnSecondary } from "./studentPageUi";
 
 function StudentPlacementPage() {
   const [jobs, setJobs] = useState([]);
@@ -33,40 +34,50 @@ function StudentPlacementPage() {
 
   return (
     <div className="space-y-6">
-      <FormCard title="Placement Jobs" subtitle="Latest job updates and apply action.">
-        <div className="space-y-2 text-sm">
-          {jobs.map((job) => (
-            <div key={job._id} className="rounded border border-gray-100 bg-gray-50 p-3">
-              <div className="font-semibold text-gray-900">
-                {job.title} {job.company ? `- ${job.company}` : ""}
-              </div>
-              <div className="text-gray-600">{job.description}</div>
-              <div className="mt-2 flex gap-2">
-                {job.applyLink && (
-                  <a className="btn-secondary px-2 py-1 text-xs" href={job.applyLink} target="_blank" rel="noreferrer">
-                    External Link
-                  </a>
-                )}
-                <button className="btn-primary px-2 py-1 text-xs" type="button" onClick={() => apply(job._id)}>
-                  Apply
-                </button>
-              </div>
-            </div>
-          ))}
-          {!jobs.length && <div className="text-gray-500">No job updates available.</div>}
-        </div>
-      </FormCard>
+      <PageHeader badge="Career" title="Placement" subtitle="Browse job openings and track your applications." />
 
-      <FormCard title="Placement History" subtitle="Your application history.">
-        <div className="space-y-2 text-sm">
-          {history.map((item) => (
-            <div key={item._id} className="rounded border border-gray-100 bg-gray-50 p-3">
-              {item.jobId?.title || "-"} | {item.status} | {new Date(item.createdAt).toLocaleDateString()}
-            </div>
-          ))}
-          {!history.length && <div className="text-gray-500">No placement history.</div>}
-        </div>
-      </FormCard>
+      <PageCard title="Placement jobs" subtitle="Latest job updates and apply action." icon={Briefcase}>
+        {!jobs.length ? (
+          <EmptyState icon={Briefcase} title="No job updates" message="New placement opportunities will appear here." />
+        ) : (
+          <div className="space-y-3">
+            {jobs.map((job) => (
+              <div key={job._id} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                <div className="font-semibold text-slate-900">
+                  {job.title}
+                  {job.company ? ` — ${job.company}` : ""}
+                </div>
+                <p className="mt-1 text-sm text-slate-600">{job.description}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {job.applyLink && (
+                    <a className={btnSecondary} href={job.applyLink} target="_blank" rel="noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                      External link
+                    </a>
+                  )}
+                  <button className={btnPrimary} type="button" onClick={() => apply(job._id)}>
+                    Apply
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </PageCard>
+
+      <PageCard title="Placement history" subtitle="Your application history." icon={History}>
+        {!history.length ? (
+          <EmptyState icon={History} title="No placement history" message="Your job applications will appear here." />
+        ) : (
+          <div className="space-y-2">
+            {history.map((item) => (
+              <div key={item._id} className="rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
+                {item.jobId?.title || "—"} · {item.status} · {new Date(item.createdAt).toLocaleDateString()}
+              </div>
+            ))}
+          </div>
+        )}
+      </PageCard>
     </div>
   );
 }

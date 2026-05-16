@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../../models/User.js";
 import Student from "../../models/Student.js";
 import Teacher from "../../models/Teacher.js";
@@ -11,6 +12,8 @@ import FeePayment from "../../models/FeePayment.js";
 import ActivityLog from "../../models/ActivityLog.js";
 import Notice from "../../models/Notice.js";
 import Notification from "../../models/Notification.js";
+import TeacherLeave from "../../models/TeacherLeave.js";
+import { ROLES } from "../../common/constants/roles.js";
 
 export const adminRepository = {
   findUserByEmail: (email) => User.findOne({ email }),
@@ -96,10 +99,22 @@ export const adminRepository = {
   studentAttendanceReport: ({ schoolId, studentId, from, to }) =>
     Attendance.find({ schoolId, studentId, date: { $gte: from, $lte: to } }).sort({ date: -1 }),
 
-  upsertTeacherAttendance: ({ schoolId, teacherId, date, status }) =>
-    TeacherAttendance.findOneAndUpdate({ schoolId, teacherId, date }, { status }, { new: true, upsert: true }),
-  teacherAttendanceReport: ({ schoolId, teacherId, from, to }) =>
-    TeacherAttendance.find({ schoolId, teacherId, date: { $gte: from, $lte: to } }).sort({ date: -1 }),
+  upsertTeacherAttendance: ({ schoolId, teacherId, date, status, remarks }) =>
+    TeacherAttendance.findOneAndUpdate(
+      { schoolId, teacherId, date },
+      { status, ...(remarks !== undefined ? { remarks: remarks || "" } : {}) },
+      { new: true, upsert: true }
+    ),
+  teacherAttendanceReport: ({ schoolId, teacherId, from, to }) => {
+    const filter = { schoolId, date: { $gte: from, $lte: to } };
+    if (teacherId) filter.teacherId = teacherId;
+    return TeacherAttendance.find(filter)
+      .populate({
+        path: "teacherId",
+        populate: [{ path: "userId" }, { path: "subjects" }],
+      })
+      .sort({ date: -1, updatedAt: -1 });
+  },
 
   createFeeStructure: (payload) => FeeStructure.create(payload),
   updateFeeStructure: ({ schoolId, structureId, payload }) =>
@@ -190,4 +205,67 @@ export const adminRepository = {
   getRecentActivities: ({ schoolId, limit = 10 }) =>
     ActivityLog.find({ schoolId }).sort({ createdAt: -1 }).limit(limit),
   createNotification: (payload) => Notification.create(payload),
+
+  findSchoolAdminUsers: (schoolId) =>
+    User.find({ schoolId, role: ROLES.SCHOOL_ADMIN, isActive: { $ne: false } }).select("_id name email"),
+
+  listTeacherLeaves: ({ schoolId, filter = {}, skip = 0, limit = 50 }) =>
+    TeacherLeave.find({ schoolId, ...filter })
+      .populate({ path: "teacherId", populate: [{ path: "userId" }, { path: "subjects" }] })
+      .populate("approvedBy", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+  countTeacherLeaves: ({ schoolId, filter = {} }) => TeacherLeave.countDocuments({ schoolId, ...filter }),
+  findTeacherLeaveById: ({ schoolId, leaveId }) =>
+    TeacherLeave.findOne({ _id: leaveId, schoolId })
+      .populate({ path: "teacherId", populate: [{ path: "userId" }, { path: "subjects" }] })
+      .populate("approvedBy", "name email"),
+  updateTeacherLeave: ({ schoolId, leaveId, payload }) =>
+    TeacherLeave.findOneAndUpdate({ _id: leaveId, schoolId }, payload, { new: true })
+      .populate({ path: "teacherId", populate: [{ path: "userId" }, { path: "subjects" }] })
+      .populate("approvedBy", "name email"),
+  deleteTeacherLeave: ({ schoolId, leaveId }) => TeacherLeave.findOneAndDelete({ _id: leaveId, schoolId }),
+  countPendingTeacherLeaves: ({ schoolId }) =>
+    TeacherLeave.countDocuments({ schoolId, status: "PENDING" }),
+  aggregateTeacherLeaveStats: async ({ schoolId }) => {
+    const sid = new mongoose.Types.ObjectId(String(schoolId));
+    const rows = await TeacherLeave.aggregate([
+      { $match: { schoolId: sid } },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]);
+    const map = { PENDING: 0, APPROVED: 0, REJECTED: 0, CANCELLED: 0 };
+    let total = 0;
+    rows.forEach((r) => {
+      if (r._id && map[r._id] !== undefined) map[r._id] = r.count;
+      total += r.count;
+    });
+    return { total, ...map };
+  },
+  aggregateTeacherLeavesByMonth: async ({ schoolId, year, month }) => {
+    const y = Number(year);
+    const m = Number(month);
+    const from = new Date(y, m - 1, 1);
+    const to = new Date(y, m, 0, 23, 59, 59, 999);
+    const sid = new mongoose.Types.ObjectId(String(schoolId));
+    const rows = await TeacherLeave.aggregate([
+      { $match: { schoolId: sid, createdAt: { $gte: from, $lte: to } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+    return rows.map((r) => ({ date: r._id, count: r.count }));
+  },
+  aggregateTeacherLeavesByType: async ({ schoolId }) => {
+    const sid = new mongoose.Types.ObjectId(String(schoolId));
+    return TeacherLeave.aggregate([
+      { $match: { schoolId: sid } },
+      { $group: { _id: "$leaveType", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+  },
 };

@@ -55,6 +55,15 @@ export const adminService = {
   getTeacherAttendanceReport: async (params) => (await api.get("/school-admin/attendance/teachers/report", { params })).data.data,
   getMonthlyAttendanceSummary: async (params) => (await api.get("/school-admin/attendance/monthly-summary", { params })).data.data,
 
+  listTeacherLeaves: async (params) => (await api.get("/school-admin/teacher-leaves", { params })).data.data,
+  getTeacherLeaveStats: async () => (await api.get("/school-admin/teacher-leaves/stats")).data.data,
+  getTeacherLeaveCharts: async () => (await api.get("/school-admin/teacher-leaves/charts")).data.data,
+  getTeacherLeaveById: async (leaveId) => (await api.get(`/school-admin/teacher-leaves/${leaveId}`)).data.data,
+  decideTeacherLeave: async (leaveId, payload) =>
+    (await api.put(`/school-admin/teacher-leaves/${leaveId}/decide`, payload)).data.data,
+  deleteTeacherLeave: async (leaveId) => (await api.delete(`/school-admin/teacher-leaves/${leaveId}`)).data.data,
+  getTeacherLeaveBadgeCount: async () => (await api.get("/school-admin/teacher-leaves/badge-count")).data.data,
+
   createFeeStructure: async (payload) => (await api.post("/school-admin/fees/structures", payload)).data.data,
   getFeeStructures: async () => (await api.get("/school-admin/fees/structures")).data.data,
   assignFees: async (payload) => (await api.post("/school-admin/fees/assign", payload)).data.data,

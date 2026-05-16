@@ -1,7 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { CalendarCheck, ClipboardList, FileSpreadsheet, Users } from "lucide-react";
 import { teacherService } from "../../services/teacherService";
+import {
+  DataTable,
+  GlassStat,
+  inputClass,
+  labelClass,
+  PageCard,
+  PageHeader,
+  TabPills,
+} from "./teacherPageUi";
+
+const btnPrimary =
+  "inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:opacity-50";
+const btnSecondary =
+  "inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50";
 
 const currentMonthStr = () => {
   const d = new Date();
@@ -302,27 +316,27 @@ function TeacherAttendancePage() {
   const toIdx = gridData ? Math.min(gridData.page * gridData.limit, gridData.totalStudents) : 0;
 
   return (
-    <div className="space-y-6 print:space-y-2">
-      <div className="no-print flex flex-wrap gap-2">
-        <button
-          type="button"
-          className={viewMode === "daily" ? "btn-primary" : "btn-secondary"}
-          onClick={() => setViewMode("daily")}
-        >
-          Daily view
-        </button>
-        <button
-          type="button"
-          className={viewMode === "monthly" ? "btn-primary" : "btn-secondary"}
-          onClick={() => setViewMode("monthly")}
-        >
-          Monthly grid (register)
-        </button>
-      </div>
+    <div className="space-y-8 print:space-y-2">
+      <PageHeader
+        badge="Classroom"
+        title="Attendance"
+        subtitle="Mark daily attendance or use the monthly register. Export CSV or print when needed."
+        actions={
+          <TabPills
+            tabs={[
+              { id: "daily", label: "Daily view" },
+              { id: "monthly", label: "Monthly register" },
+            ]}
+            active={viewMode}
+            onChange={setViewMode}
+          />
+        }
+      />
 
       {viewMode === "daily" && (
         <>
-          <FormCard
+          <PageCard
+            icon={Users}
             title="Daily attendance"
             subtitle="Students load from your assigned class. Tap a status per student — everyone defaults to Present until you change them. One save updates the whole class for the selected date."
           >
@@ -330,7 +344,7 @@ function TeacherAttendancePage() {
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500">Class &amp; section</span>
                 <select
-                  className="input max-w-md"
+                  className={`${inputClass} max-w-md`}
                   value={`${gridClassId}|${gridSection}`}
                   onChange={(e) => {
                     const opt = classOptions.find((o) => `${o.classId}|${o.section}` === e.target.value);
@@ -350,9 +364,9 @@ function TeacherAttendancePage() {
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-gray-500">Date</span>
-                <input className="input w-44" type="date" max={maxDateStr} value={dailyDate} onChange={(e) => setDailyDate(e.target.value)} />
+                <input className={`${inputClass} w-44`} type="date" max={maxDateStr} value={dailyDate} onChange={(e) => setDailyDate(e.target.value)} />
               </div>
-              <button type="button" className="btn-secondary" onClick={() => loadDailyRoster()} disabled={rosterLoading || !gridClassId}>
+              <button type="button" className={btnSecondary} onClick={() => loadDailyRoster()} disabled={rosterLoading || !gridClassId}>
                 {rosterLoading ? "Loading…" : "Refresh list"}
               </button>
               <button type="button" className="rounded-lg bg-green-100 px-3 py-2 text-sm font-medium text-green-900 hover:bg-green-200" onClick={markAllPresent}>
@@ -363,7 +377,7 @@ function TeacherAttendancePage() {
               </button>
               <button
                 type="button"
-                className="btn-primary"
+                className={btnPrimary}
                 onClick={saveAllAttendance}
                 disabled={saveAllLoading || rosterLoading || !roster.length || dailyDate > maxDateStr}
               >
@@ -377,7 +391,7 @@ function TeacherAttendancePage() {
               </p>
             )}
 
-            <div className="mt-4 max-h-[min(70vh,720px)] overflow-auto rounded-lg border border-gray-200">
+            <DataTable>
               <table className="min-w-full border-collapse text-sm">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-100 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -417,28 +431,28 @@ function TeacherAttendancePage() {
               {!rosterLoading && classOptions.length > 0 && roster.length === 0 && (
                 <p className="p-6 text-center text-gray-500">No students in this class and section.</p>
               )}
-            </div>
-          </FormCard>
+            </DataTable>
+          </PageCard>
 
-          <FormCard title="Advanced: CSV import" subtitle="Optional — one line per row: studentId,date,status,remark">
+          <PageCard icon={FileSpreadsheet} title="Advanced: CSV import" subtitle="Optional — one line per row: studentId,date,status,remark">
             <button type="button" className="btn-secondary mb-2 text-sm" onClick={() => setShowCsvImport((v) => !v)}>
               {showCsvImport ? "Hide" : "Show"} CSV paste
             </button>
             {showCsvImport && (
               <>
-                <textarea className="input min-h-28" value={bulkText} onChange={(e) => setBulkText(e.target.value)} placeholder="studentId,2026-03-29,PRESENT," />
+                <textarea className={`${inputClass} min-h-28`} value={bulkText} onChange={(e) => setBulkText(e.target.value)} placeholder="studentId,2026-03-29,PRESENT," />
                 <button className="btn-secondary mt-3 w-fit" type="button" onClick={submitBulk}>
                   Submit bulk (legacy)
                 </button>
               </>
             )}
-          </FormCard>
+          </PageCard>
 
-          <FormCard title="Attendance Reports" subtitle="Daily, monthly and class-wise summaries.">
+          <PageCard icon={ClipboardList} title="Attendance reports" subtitle="Daily, monthly and class-wise summaries.">
             <div className="grid gap-3 sm:grid-cols-4">
-              <input className="input" type="date" value={reportQuery.from} onChange={(e) => setReportQuery((p) => ({ ...p, from: e.target.value }))} />
-              <input className="input" type="date" value={reportQuery.to} onChange={(e) => setReportQuery((p) => ({ ...p, to: e.target.value }))} />
-              <input className="input" type="date" value={reportQuery.day} onChange={(e) => setReportQuery((p) => ({ ...p, day: e.target.value }))} />
+              <input className={inputClass} type="date" value={reportQuery.from} onChange={(e) => setReportQuery((p) => ({ ...p, from: e.target.value }))} />
+              <input className={inputClass} type="date" value={reportQuery.to} onChange={(e) => setReportQuery((p) => ({ ...p, to: e.target.value }))} />
+              <input className={inputClass} type="date" value={reportQuery.day} onChange={(e) => setReportQuery((p) => ({ ...p, day: e.target.value }))} />
               <button className="btn-secondary" type="button" onClick={loadReport}>
                 Load Reports
               </button>
@@ -450,19 +464,20 @@ function TeacherAttendancePage() {
                 <div className="rounded border border-gray-100 bg-gray-50 p-3 text-sm">Class groups: {Object.keys(report.classWise || {}).length}</div>
               </div>
             )}
-          </FormCard>
+          </PageCard>
         </>
       )}
 
       {viewMode === "monthly" && (
         <div id="attendance-print-root">
-          <FormCard
+          <PageCard
+            icon={CalendarCheck}
             title="Monthly attendance register"
             subtitle="Scroll horizontally for all days. Click a cell to edit. ✔ present · ❌ absent · L leave · ⏰ late."
           >
             <div className="no-print mb-4 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
               <select
-                className="input max-w-md"
+                className={`${inputClass} max-w-md`}
                 value={`${gridClassId}|${gridSection}`}
                 onChange={(e) => {
                   const opt = classOptions.find((o) => `${o.classId}|${o.section}` === e.target.value);
@@ -479,7 +494,7 @@ function TeacherAttendancePage() {
                   </option>
                 ))}
               </select>
-              <input className="input w-44" type="month" value={gridMonth} onChange={(e) => { setGridMonth(e.target.value); setGridPage(1); }} />
+              <input className={`${inputClass} w-44`} type="month" value={gridMonth} onChange={(e) => { setGridMonth(e.target.value); setGridPage(1); }} />
               <button className="btn-secondary" type="button" onClick={() => loadGrid()} disabled={gridLoading}>
                 {gridLoading ? "Loading…" : "Refresh"}
               </button>
@@ -589,7 +604,7 @@ function TeacherAttendancePage() {
                 </div>
               </div>
             )}
-          </FormCard>
+          </PageCard>
         </div>
       )}
 
@@ -600,14 +615,14 @@ function TeacherAttendancePage() {
             <p className="mt-1 text-sm text-gray-600">
               {editPayload.studentName} · {editPayload.date}
             </p>
-            <select className="input mt-3" value={editPayload.status} onChange={(e) => setEditPayload((p) => ({ ...p, status: e.target.value }))}>
+            <select className={`${inputClass} mt-3`} value={editPayload.status} onChange={(e) => setEditPayload((p) => ({ ...p, status: e.target.value }))}>
               <option value="PRESENT">PRESENT</option>
               <option value="ABSENT">ABSENT</option>
               <option value="LEAVE">LEAVE</option>
               <option value="LATE">LATE</option>
             </select>
             <input
-              className="input mt-2"
+              className={`${inputClass} mt-2`}
               placeholder="Remark"
               value={editPayload.remark}
               onChange={(e) => setEditPayload((p) => ({ ...p, remark: e.target.value }))}

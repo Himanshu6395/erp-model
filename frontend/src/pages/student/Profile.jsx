@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { FaFileAlt, FaIdCard } from "react-icons/fa";
-import FormCard from "../../components/FormCard";
+import { FileText, GraduationCap, IndianRupee, Save, User } from "lucide-react";
 import Loader from "../../components/Loader";
 import { studentService } from "../../services/studentService";
+import { PageCard, Field, GlassStat, EmptyState, inputClass, btnPrimary } from "./studentPageUi";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -15,15 +16,6 @@ function formatMoney(n) {
   const x = Number(n);
   if (Number.isNaN(x)) return "—";
   return x.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-}
-
-function Field({ label, value }) {
-  return (
-    <div className="rounded-lg border border-gray-100 bg-gray-50/80 px-3 py-2">
-      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</div>
-      <div className="mt-0.5 text-sm font-medium text-gray-900 break-words">{value ?? "—"}</div>
-    </div>
-  );
 }
 
 const STATUS_STYLES = {
@@ -113,7 +105,7 @@ function StudentProfilePage() {
   };
 
   if (loading) return <Loader text="Loading your profile..." />;
-  if (!profile) return <p className="text-sm text-gray-500">Profile could not be loaded.</p>;
+  if (!profile) return <p className="text-sm text-slate-500">Profile could not be loaded.</p>;
 
   const user = profile.userId;
   const status = profile.status || "ACTIVE";
@@ -123,17 +115,13 @@ function StudentProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 py-8 text-white shadow-lg">
+      <section className="relative overflow-hidden rounded-[1.25rem] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 py-8 text-white shadow-lg">
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/5" />
         <div className="pointer-events-none absolute -bottom-8 left-1/3 h-32 w-32 rounded-full bg-indigo-500/20" />
         <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             {form.profileImage ? (
-              <img
-                src={form.profileImage}
-                alt=""
-                className="h-20 w-20 rounded-2xl border-2 border-white/20 object-cover shadow-md"
-              />
+              <img src={form.profileImage} alt="" className="h-20 w-20 rounded-2xl border-2 border-white/20 object-cover shadow-md" />
             ) : (
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-2xl font-bold text-white/90">
                 {displayName.slice(0, 1).toUpperCase()}
@@ -171,28 +159,16 @@ function StudentProfilePage() {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-medium text-gray-500">Total fees</div>
-          <div className="mt-1 text-xl font-bold text-gray-900">₹{formatMoney(fee.total)}</div>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-medium text-gray-500">Paid</div>
-          <div className="mt-1 text-xl font-bold text-emerald-700">₹{formatMoney(fee.paid)}</div>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-medium text-gray-500">Pending</div>
-          <div className="mt-1 text-xl font-bold text-amber-700">₹{formatMoney(fee.pending)}</div>
-        </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-medium text-gray-500">Fine</div>
-          <div className="mt-1 text-xl font-bold text-gray-800">₹{formatMoney(fee.fine)}</div>
-        </div>
+        <GlassStat icon={IndianRupee} label="Total fees" value={`₹${formatMoney(fee.total)}`} gradient="from-slate-600 to-slate-800" />
+        <GlassStat icon={IndianRupee} label="Paid" value={`₹${formatMoney(fee.paid)}`} gradient="from-emerald-600 to-teal-600" />
+        <GlassStat icon={IndianRupee} label="Pending" value={`₹${formatMoney(fee.pending)}`} gradient="from-amber-500 to-orange-500" />
+        <GlassStat icon={IndianRupee} label="Fine" value={`₹${formatMoney(fee.fine)}`} gradient="from-rose-600 to-red-600" />
       </div>
 
-      <FormCard title="Academic" subtitle="Enrolment and roll information (read-only).">
+      <PageCard title="Academic" subtitle="Enrolment and roll information (read-only)." icon={GraduationCap}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Class" value={profile.classId?.name} />
           <Field label="Section" value={profile.section} />
@@ -202,9 +178,9 @@ function StudentProfilePage() {
           <Field label="Date of birth" value={formatDate(profile.dateOfBirth)} />
           <Field label="Gender" value={profile.gender} />
         </div>
-      </FormCard>
+      </PageCard>
 
-      <FormCard title="Family & contact" subtitle="Parent and guardian details on record.">
+      <PageCard title="Family & contact" subtitle="Parent and guardian details on record." icon={User}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Father" value={profile.fatherName} />
           <Field label="Mother" value={profile.motherName} />
@@ -212,9 +188,9 @@ function StudentProfilePage() {
           <Field label="Parent / guardian (legacy)" value={profile.parentName} />
           <Field label="Parent email" value={profile.parentEmail} />
         </div>
-      </FormCard>
+      </PageCard>
 
-      <FormCard title="Transport & hostel" subtitle="Optional services assigned by the school.">
+      <PageCard title="Transport & hostel" subtitle="Optional services assigned by the school.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Transport required" value={profile.transportRequired ? "Yes" : "No"} />
           <Field label="Route" value={profile.transportRouteId} />
@@ -222,79 +198,62 @@ function StudentProfilePage() {
           <Field label="Hostel required" value={profile.hostelRequired ? "Yes" : "No"} />
           <Field label="Room number" value={profile.hostelRoomNumber} />
         </div>
-      </FormCard>
+      </PageCard>
 
-      <FormCard title="Medical" subtitle="Share updates with the office if anything changes.">
+      <PageCard title="Medical" subtitle="Share updates with the office if anything changes.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Blood group" value={profile.bloodGroup} />
           <Field label="Allergies" value={profile.allergies} />
           <Field label="Notes" value={profile.medicalNotes} />
         </div>
-      </FormCard>
+      </PageCard>
 
-      <FormCard title="Other" subtitle="Demographic and prior school information.">
+      <PageCard title="Other" subtitle="Demographic and prior school information.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Field label="Previous school" value={profile.previousSchool} />
           <Field label="Religion" value={profile.religion} />
           <Field label="Category" value={profile.category} />
           <Field label="Nationality" value={profile.nationality} />
         </div>
-      </FormCard>
+      </PageCard>
 
-      <FormCard title="Documents" subtitle="Files uploaded during admission (view only).">
+      <PageCard title="Documents" subtitle="Files uploaded during admission (view only).">
         {documents.length === 0 ? (
-          <p className="text-sm text-gray-500">No documents on file.</p>
+          <EmptyState icon={FileText} title="No documents on file" message="Documents uploaded during admission will appear here." />
         ) : (
-          <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100">
+          <ul className="divide-y divide-slate-100 rounded-2xl border border-slate-100">
             {documents.map((doc, i) => (
-              <li key={`${doc.url}-${i}`} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
-                <span className="flex items-center gap-2 font-medium text-gray-800">
-                  <FaFileAlt className="text-gray-400" />
+              <li key={`${doc.url}-${i}`} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+                <span className="flex items-center gap-2 font-medium text-slate-800">
+                  <FaFileAlt className="text-slate-400" />
                   {doc.name}
                 </span>
-                <a href={doc.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-indigo-600 hover:underline">
+                <a href={doc.url} target="_blank" rel="noopener noreferrer" className="shrink-0 font-medium text-brand-600 hover:underline">
                   Open
                 </a>
               </li>
             ))}
           </ul>
         )}
-      </FormCard>
+      </PageCard>
 
-      <FormCard
-        title="Update your details"
-        subtitle="You can edit contact, address, and profile photo URL. Other fields are maintained by the school."
-      >
+      <PageCard title="Update your details" subtitle="You can edit contact, address, and profile photo URL. Other fields are maintained by the school." icon={User}>
         <div className="grid gap-3 sm:grid-cols-2">
-          <input className="input" placeholder="Full name" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
-          <input className="input" placeholder="Mobile number" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
-          <input
-            className="input"
-            placeholder="Alternate mobile"
-            value={form.alternateMobile}
-            onChange={(e) => setForm((p) => ({ ...p, alternateMobile: e.target.value }))}
-          />
-          <input
-            className="input"
-            placeholder="Parent / guardian phone"
-            value={form.parentPhone}
-            onChange={(e) => setForm((p) => ({ ...p, parentPhone: e.target.value }))}
-          />
-          <input className="input sm:col-span-2" placeholder="Address" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
-          <input className="input" placeholder="City" value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} />
-          <input className="input" placeholder="State" value={form.state} onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))} />
-          <input className="input" placeholder="PIN code" value={form.pincode} onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))} />
-          <input
-            className="input sm:col-span-2"
-            placeholder="Profile image URL"
-            value={form.profileImage}
-            onChange={(e) => setForm((p) => ({ ...p, profileImage: e.target.value }))}
-          />
+          <input className={inputClass} placeholder="Full name" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
+          <input className={inputClass} placeholder="Mobile number" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
+          <input className={inputClass} placeholder="Alternate mobile" value={form.alternateMobile} onChange={(e) => setForm((p) => ({ ...p, alternateMobile: e.target.value }))} />
+          <input className={inputClass} placeholder="Parent / guardian phone" value={form.parentPhone} onChange={(e) => setForm((p) => ({ ...p, parentPhone: e.target.value }))} />
+          <input className={`${inputClass} sm:col-span-2`} placeholder="Address" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} />
+          <input className={inputClass} placeholder="City" value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} />
+          <input className={inputClass} placeholder="State" value={form.state} onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))} />
+          <input className={inputClass} placeholder="PIN code" value={form.pincode} onChange={(e) => setForm((p) => ({ ...p, pincode: e.target.value }))} />
+          <input className={`${inputClass} sm:col-span-2`} placeholder="Profile image URL" value={form.profileImage} onChange={(e) => setForm((p) => ({ ...p, profileImage: e.target.value }))} />
         </div>
-        <button className="btn-primary mt-4 w-fit disabled:opacity-60" type="button" disabled={saving} onClick={save}>
+        <button className={`${btnPrimary} mt-4 w-fit`} type="button" disabled={saving} onClick={save}>
+          <Save className="h-4 w-4" />
           {saving ? "Saving…" : "Save changes"}
         </button>
-      </FormCard>
+      </PageCard>
     </div>
   );
 }

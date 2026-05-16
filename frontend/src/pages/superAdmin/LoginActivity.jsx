@@ -1,20 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
-import {
-  Filter,
-  LogIn,
-  MonitorSmartphone,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  XCircle,
-} from "lucide-react";
+import { LogIn, MonitorSmartphone, ShieldCheck, Sparkles, XCircle } from "lucide-react";
 import Loader from "../../components/Loader";
+import ErpUserAvatar from "../../components/common/ErpUserAvatar";
+import { useAuth } from "../../context/useAuth";
+import FilterField from "../../components/superAdmin/FilterField";
+import SuperAdminFilterMenu from "../../components/superAdmin/SuperAdminFilterMenu";
 import { superAdminOpsService } from "../../services/superAdminOpsService";
+import { SA_INPUT_WITH_H, SA_SELECT_WITH_H, countActiveFilters } from "./superAdminUi";
+import { usePlatformSettings } from "../../hooks/usePlatformSettings";
 
 const initialFilters = { from: "", to: "", role: "", status: "" };
 
 function LoginActivityPage() {
+  const { formatDateTime } = usePlatformSettings();
+  const { user } = useAuth();
+  const superAdminProfile = useSelector((s) => s.superAdminProfile);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState(initialFilters);
@@ -48,8 +50,9 @@ function LoginActivityPage() {
     [filters, applied]
   );
 
-  const filtersActive = useMemo(() => Object.values(applied).some(Boolean), [applied]);
+  const filterBadgeCount = useMemo(() => countActiveFilters(applied), [applied]);
 
+  const syncDraft = () => setFilters(applied);
   const applyFilters = () => load(filters);
 
   const clearFilters = () => {
@@ -112,90 +115,32 @@ function LoginActivityPage() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-900/[0.06] ring-1 ring-slate-100/90">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-slate-800">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-brand-600 text-white shadow-sm">
-                <Filter className="h-4 w-4" aria-hidden />
-              </span>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">Query filters</h2>
-                <p className="text-xs text-slate-500">Set criteria, then apply to reload from the API</p>
-              </div>
+        <div className="flex flex-col gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-sm text-slate-600">
+            <span className="font-semibold text-slate-900">{summary.total}</span> events
+            {filterBadgeCount ? <span className="text-slate-500"> · filtered</span> : null}
+            {filtersDirty ? <span className="ml-2 text-amber-700">· unapplied changes</span> : null}
+          </p>
+          <SuperAdminFilterMenu activeCount={filterBadgeCount} onOpen={syncDraft} onApply={applyFilters} onClear={clearFilters}>
+            <div className="space-y-4">
+              <FilterField label="From date">
+                <input type="date" className={SA_INPUT_WITH_H} value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} />
+              </FilterField>
+              <FilterField label="To date">
+                <input type="date" className={SA_INPUT_WITH_H} value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} />
+              </FilterField>
+              <FilterField label="Role">
+                <input className={SA_INPUT_WITH_H} placeholder="e.g. school_admin" value={filters.role} onChange={(e) => setFilters((p) => ({ ...p, role: e.target.value }))} />
+              </FilterField>
+              <FilterField label="Status">
+                <select className={SA_SELECT_WITH_H} value={filters.status} onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value }))}>
+                  <option value="">All outcomes</option>
+                  <option value="SUCCESS">Success</option>
+                  <option value="FAILED">Failed</option>
+                </select>
+              </FilterField>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {filtersActive ? (
-                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-900 ring-1 ring-violet-200/60">
-                  Server filters active
-                </span>
-              ) : null}
-              {filtersDirty ? (
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 ring-1 ring-amber-200/60">
-                  Unapplied changes
-                </span>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">From date</label>
-              <input
-                type="date"
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                value={filters.from}
-                onChange={(e) => setFilters((prev) => ({ ...prev, from: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">To date</label>
-              <input
-                type="date"
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                value={filters.to}
-                onChange={(e) => setFilters((prev) => ({ ...prev, to: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">Role</label>
-              <input
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                placeholder="e.g. school_admin"
-                value={filters.role}
-                onChange={(e) => setFilters((prev) => ({ ...prev, role: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">Status</label>
-              <select
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                value={filters.status}
-                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
-              >
-                <option value="">All outcomes</option>
-                <option value="SUCCESS">Success</option>
-                <option value="FAILED">Failed</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={applyFilters}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-brand-500/25 transition hover:from-brand-700 hover:to-indigo-700"
-            >
-              <Search className="h-4 w-4" aria-hidden />
-              Apply filters
-            </button>
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-            >
-              Reset
-            </button>
-          </div>
+          </SuperAdminFilterMenu>
         </div>
 
         {loading ? (
@@ -226,12 +171,28 @@ function LoginActivityPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows.map((row) => (
+                {rows.map((row) => {
+                  const rowName = row.userId?.name || row.email || "—";
+                  const isCurrentSuperAdmin =
+                    row.role === "SUPER_ADMIN" &&
+                    (row.userId?.email === user?.email || row.email === user?.email);
+                  const rowAvatar = isCurrentSuperAdmin ? superAdminProfile.avatarUrl : "";
+
+                  return (
                   <tr key={row._id} className="transition-colors hover:bg-indigo-50/40">
-                    <td className="min-w-0 overflow-hidden px-5 py-4 align-top font-semibold text-slate-900 sm:px-6">
-                      <span className="block truncate" title={row.userId?.name || row.email || ""}>
-                        {row.userId?.name || row.email || "—"}
-                      </span>
+                    <td className="min-w-0 overflow-hidden px-5 py-4 align-top sm:px-6">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <ErpUserAvatar
+                          src={rowAvatar}
+                          name={rowName}
+                          email={row.email || row.userId?.email}
+                          size={36}
+                          className="shrink-0"
+                        />
+                        <span className="truncate font-semibold text-slate-900" title={rowName}>
+                          {rowName}
+                        </span>
+                      </div>
                     </td>
                     <td className="min-w-0 overflow-hidden py-4 pr-3 align-top">
                       <span className="inline-block max-w-full truncate rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 ring-1 ring-slate-200/80">
@@ -257,7 +218,7 @@ function LoginActivityPage() {
                       </div>
                     </td>
                     <td className="min-w-0 whitespace-nowrap py-4 pr-3 align-top tabular-nums text-slate-600">
-                      {row.timestamp ? new Date(row.timestamp).toLocaleString() : "—"}
+                      {formatDateTime(row.timestamp)}
                     </td>
                     <td className="min-w-0 whitespace-nowrap px-5 py-4 align-top sm:px-6">
                       <span
@@ -271,7 +232,8 @@ function LoginActivityPage() {
                       </span>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
                 {!rows.length && (
                   <tr>
                     <td colSpan={7} className="px-6 py-16 text-center">
