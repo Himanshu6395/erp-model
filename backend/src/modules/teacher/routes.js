@@ -5,8 +5,11 @@ import validateRequest from "../../common/middleware/validateRequest.js";
 import { protect, authorize } from "../../common/middleware/authMiddleware.js";
 import { ROLES } from "../../common/constants/roles.js";
 import { teacherController } from "./controller.js";
+import { inquiryTeacherController } from "../inquiry/controller.js";
 import AppError from "../../common/errors/AppError.js";
 import { uploadStudyMaterialFiles } from "../../common/middleware/uploadStudyMaterial.js";
+import { uploadTeacherLeaveFile } from "../../common/middleware/uploadTeacherLeave.js";
+import { uploadTeacherProfile } from "../../common/middleware/uploadTeacherProfile.js";
 
 const router = Router();
 router.use(protect, authorize(ROLES.TEACHER));
@@ -17,6 +20,23 @@ const studyMaterialUpload = (req, res, next) => {
     { name: "thumbnail", maxCount: 1 },
   ])(req, res, (err) => {
     if (err) return next(err instanceof AppError ? err : new AppError(err.message || "File upload failed", 400));
+    next();
+  });
+};
+
+const teacherLeaveUpload = (req, res, next) => {
+  uploadTeacherLeaveFile.single("attachment")(req, res, (err) => {
+    if (err) return next(err instanceof AppError ? err : new AppError(err.message || "File upload failed", 400));
+    next();
+  });
+};
+
+const teacherProfileUpload = (req, res, next) => {
+  uploadTeacherProfile.fields([
+    { name: "profileImage", maxCount: 1 },
+    { name: "coverImage", maxCount: 1 },
+  ])(req, res, (err) => {
+    if (err) return next(err instanceof AppError ? err : new AppError(err.message || "Profile upload failed", 400));
     next();
   });
 };
@@ -252,13 +272,31 @@ router.get("/study-material", catchAsync(teacherController.listStudyMaterial));
 
 router.get("/performance/insights", catchAsync(teacherController.studentPerformanceInsights));
 
-router.post(
-  "/leaves",
-  [body("leaveType").trim().notEmpty(), body("startDate").isISO8601(), body("endDate").isISO8601()],
-  validateRequest,
-  catchAsync(teacherController.applyLeave)
-);
+router.get("/leaves/stats", catchAsync(teacherController.getLeaveStats));
+router.get("/notifications/unread-count", catchAsync(teacherController.getUnreadNotificationCount));
+router.get("/leaves/:leaveId", [param("leaveId").isMongoId()], validateRequest, catchAsync(teacherController.getLeaveById));
+const requireLeaveDates = (req, _res, next) => {
+  const from = req.body.fromDate || req.body.startDate;
+  const to = req.body.toDate || req.body.endDate;
+  if (!from || !to) return next(new AppError("fromDate and toDate are required", 400));
+  next();
+};
+
+router.post("/leaves", teacherLeaveUpload, requireLeaveDates, catchAsync(teacherController.applyLeave));
 router.get("/leaves", catchAsync(teacherController.listLeaves));
+router.put(
+  "/leaves/:leaveId",
+  [param("leaveId").isMongoId()],
+  validateRequest,
+  teacherLeaveUpload,
+  catchAsync(teacherController.updateLeave)
+);
+router.delete(
+  "/leaves/:leaveId",
+  [param("leaveId").isMongoId()],
+  validateRequest,
+  catchAsync(teacherController.deleteLeave)
+);
 router.put("/leaves/:leaveId/cancel", [param("leaveId").isMongoId()], validateRequest, catchAsync(teacherController.cancelLeave));
 
 router.post(
@@ -288,6 +326,27 @@ router.put(
   catchAsync(teacherController.markNotificationRead)
 );
 
+router.get("/settings/profile", catchAsync(teacherController.getProfileSettings));
+router.post(
+  "/settings/profile",
+  teacherProfileUpload,
+  catchAsync(teacherController.updateProfile)
+);
+router.put("/settings/profile", teacherProfileUpload, catchAsync(teacherController.updateProfile));
+router.post(
+  "/settings/profile/photo",
+  (req, res, next) => {
+    uploadTeacherProfile.single("profileImage")(req, res, (err) => {
+      if (err) return next(err instanceof AppError ? err : new AppError(err.message || "Profile photo upload failed", 400));
+      next();
+    });
+  },
+  catchAsync(teacherController.uploadProfilePhoto)
+);
+router.get("/settings/security", catchAsync(teacherController.getSecurityInfo));
+router.put("/settings/preferences", catchAsync(teacherController.updatePreferences));
+router.put("/settings/notifications", catchAsync(teacherController.updateNotificationPrefs));
+
 router.put("/profile", catchAsync(teacherController.updateProfile));
 router.put(
   "/change-password",
@@ -299,5 +358,35 @@ router.put(
 router.get("/salary-payslip", catchAsync(teacherController.salaryAndPayslip));
 router.get("/activities", catchAsync(teacherController.activityLogs));
 router.get("/reports/export", [query("format").isIn(["csv", "pdf"])], validateRequest, catchAsync(teacherController.activityLogs));
+
+router.get("/inquiries", catchAsync(inquiryTeacherController.teacherList));
+router.get("/inquiries/:id", [param("id").isMongoId()], validateRequest, catchAsync(inquiryTeacherController.teacherGetOne));
+router.patch(
+  "/inquiries/:id/status",
+  [
+    param("id").isMongoId(),
+    body("status").isIn(["PENDING", "FOLLOW_UP", "DROPPED"]),
+    body("note").optional().isString(),
+  ],
+  validateRequest,
+  catchAsync(inquiryTeacherController.teacherPatchStatus)
+);
+router.post(
+  "/inquiries/:id/follow-up",
+  [
+    param("id").isMongoId(),
+    body("followUpDate").isISO8601(),
+    body("remarks").optional().isString(),
+    body("nextAction").optional().isString(),
+  ],
+  validateRequest,
+  catchAsync(inquiryTeacherController.teacherFollowUp)
+);
+router.post(
+  "/inquiries/:id/comments",
+  [param("id").isMongoId(), body("text").trim().notEmpty()],
+  validateRequest,
+  catchAsync(inquiryTeacherController.teacherComment)
+);
 
 export default router;

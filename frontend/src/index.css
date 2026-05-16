@@ -14,6 +14,19 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --erp-primary: #2563eb;
+  --erp-primary-hover: #1d4ed8;
+  --erp-primary-light: #3b82f6;
+  --erp-sidebar-bg: #111827;
+  --erp-header-bg: #ffffff;
+  --erp-page-bg: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  --erp-card-bg: #ffffff;
+  --erp-card-border: rgba(15, 23, 42, 0.08);
+  --erp-font-size-base: 16px;
+  --erp-border-radius: 12px;
+  --erp-card-radius: 12px;
+  --erp-text-primary: #0f172a;
+  --erp-text-secondary: #64748b;
 }
 
 body {
@@ -28,7 +41,14 @@ body {
 }
 
 .card {
-  @apply rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100;
+  border-radius: var(--erp-card-radius, 12px);
+  background-color: var(--erp-card-bg, #fff);
+  border: 1px solid var(--erp-card-border, rgba(15, 23, 42, 0.08));
+  @apply p-5 shadow-sm;
+}
+
+html[data-erp-theme="dark"] .card {
+  @apply shadow-md shadow-black/20;
 }
 
 .input {
@@ -50,4 +70,47 @@ body {
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Thin scrollbar for dashboard sidebar nav (Super Admin) */
+.sidebar-thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.sidebar-thin-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+
+.sidebar-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+}
+
+/* Teacher portal: compact sidebar + table scroll */
+.erp-sidebar-compact {
+  --erp-sidebar-width: 13rem;
+}
+
+.teacher-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+}
+
+.teacher-table-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.teacher-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 999px;
 }

@@ -5,6 +5,7 @@ import validateRequest from "../../common/middleware/validateRequest.js";
 import { protect, authorize } from "../../common/middleware/authMiddleware.js";
 import { ROLES } from "../../common/constants/roles.js";
 import { adminController } from "./controller.js";
+import { inquiryAdminController } from "../inquiry/controller.js";
 import { uploadNoticeFile } from "../../common/middleware/uploadNotice.js";
 import { uploadTeacherFiles } from "../../common/middleware/uploadTeacherFiles.js";
 import AppError from "../../common/errors/AppError.js";
@@ -180,13 +181,22 @@ router.get(
 );
 router.post(
   "/attendance/teachers/mark",
-  [body("teacherId").isMongoId(), body("date").isISO8601(), body("status").isIn(["PRESENT", "ABSENT"])],
+  [
+    body("teacherId").isMongoId(),
+    body("date").isISO8601(),
+    body("status").isIn(["PRESENT", "ABSENT", "LEAVE", "HALF_DAY"]),
+    body("remarks").optional().isString().trim(),
+  ],
   validateRequest,
   catchAsync(adminController.markTeacherAttendance)
 );
 router.get(
   "/attendance/teachers/report",
-  [query("teacherId").isMongoId(), query("from").optional().isISO8601(), query("to").optional().isISO8601()],
+  [
+    query("teacherId").optional().isMongoId(),
+    query("from").optional().isISO8601(),
+    query("to").optional().isISO8601(),
+  ],
   validateRequest,
   catchAsync(adminController.teacherAttendanceReport)
 );
@@ -520,6 +530,104 @@ router.put(
   [body("currentPassword").isLength({ min: 6 }), body("newPassword").isLength({ min: 6 })],
   validateRequest,
   catchAsync(adminController.changePassword)
+);
+
+/* ---- Teacher Leave Management ---- */
+router.get("/teacher-leaves/badge-count", catchAsync(adminController.getPendingTeacherLeaveBadge));
+router.get("/teacher-leaves/stats", catchAsync(adminController.getTeacherLeaveStatsAdmin));
+router.get("/teacher-leaves/charts", catchAsync(adminController.getTeacherLeaveChartsAdmin));
+router.get("/teacher-leaves", catchAsync(adminController.listTeacherLeavesAdmin));
+router.get(
+  "/teacher-leaves/:leaveId",
+  [param("leaveId").isMongoId()],
+  validateRequest,
+  catchAsync(adminController.getTeacherLeaveByIdAdmin)
+);
+router.put(
+  "/teacher-leaves/:leaveId/decide",
+  [
+    param("leaveId").isMongoId(),
+    body("status").isIn(["APPROVED", "REJECTED"]),
+    body("adminRemarks").optional().isString(),
+    body("remarks").optional().isString(),
+  ],
+  validateRequest,
+  catchAsync(adminController.decideTeacherLeaveAdmin)
+);
+router.delete(
+  "/teacher-leaves/:leaveId",
+  [param("leaveId").isMongoId()],
+  validateRequest,
+  catchAsync(adminController.deleteTeacherLeaveAdmin)
+);
+
+/* ---- Inquiry Management (School Admin) ---- */
+router.post(
+  "/inquiries",
+  [
+    body("studentFullName").trim().notEmpty(),
+    body("mobileNumber").trim().notEmpty(),
+    body("assignedTeacherId").optional().isMongoId(),
+    body("interestedClassId").optional().isMongoId(),
+    body("gender").optional().isIn(["MALE", "FEMALE", "OTHER"]),
+    body("status").optional().isIn(["PENDING", "FOLLOW_UP", "DROPPED", "CONVERTED_TO_ADMISSION"]),
+    body("source").optional().isIn(["WALK_IN", "WEBSITE", "FACEBOOK", "INSTAGRAM", "REFERENCE", "TEACHER", "OTHER"]),
+  ],
+  validateRequest,
+  catchAsync(inquiryAdminController.create)
+);
+router.get("/inquiries/export", catchAsync(inquiryAdminController.exportCsv));
+router.get("/inquiries/analytics", catchAsync(inquiryAdminController.analytics));
+router.get("/inquiries/badge-count", catchAsync(inquiryAdminController.badge));
+router.get("/inquiries", catchAsync(inquiryAdminController.list));
+router.get("/inquiries/:id", [param("id").isMongoId()], validateRequest, catchAsync(inquiryAdminController.getOne));
+router.put("/inquiries/:id", [param("id").isMongoId()], validateRequest, catchAsync(inquiryAdminController.update));
+router.delete("/inquiries/:id", [param("id").isMongoId()], validateRequest, catchAsync(inquiryAdminController.remove));
+router.patch(
+  "/inquiries/:id/status",
+  [
+    param("id").isMongoId(),
+    body("status").isIn(["PENDING", "FOLLOW_UP", "DROPPED", "CONVERTED_TO_ADMISSION"]),
+    body("note").optional().isString(),
+  ],
+  validateRequest,
+  catchAsync(inquiryAdminController.patchStatus)
+);
+router.patch(
+  "/inquiries/:id/assign-teacher",
+  [param("id").isMongoId(), body("teacherId").isMongoId()],
+  validateRequest,
+  catchAsync(inquiryAdminController.assignTeacher)
+);
+router.patch(
+  "/inquiries/:id/convert",
+  [
+    param("id").isMongoId(),
+    body("classId").optional().isMongoId(),
+    body("section").optional().isString(),
+    body("email").optional().isEmail(),
+    body("password").optional().isString(),
+    body("admissionNumber").optional().isString(),
+  ],
+  validateRequest,
+  catchAsync(inquiryAdminController.convert)
+);
+router.post(
+  "/inquiries/:id/follow-up",
+  [
+    param("id").isMongoId(),
+    body("followUpDate").isISO8601(),
+    body("remarks").optional().isString(),
+    body("nextAction").optional().isString(),
+  ],
+  validateRequest,
+  catchAsync(inquiryAdminController.followUp)
+);
+router.post(
+  "/inquiries/:id/comments",
+  [param("id").isMongoId(), body("text").trim().notEmpty()],
+  validateRequest,
+  catchAsync(inquiryAdminController.comment)
 );
 
 export default router;

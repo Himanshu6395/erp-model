@@ -16,6 +16,8 @@ import {
 import { useAuth } from "../../context/useAuth";
 import { getRoleHome } from "../../utils/roleUtils";
 import LandingHeader from "../../components/LandingHeader";
+import PlatformLogo from "../../components/common/PlatformLogo";
+import { usePlatformSettings } from "../../hooks/usePlatformSettings";
 
 const TRUST_POINTS = [
   { icon: Shield, text: "Encrypted sign-in & role-based access" },
@@ -26,6 +28,7 @@ const TRUST_POINTS = [
 function LoginPage() {
   const navigate = useNavigate();
   const { login, loading } = useAuth();
+  const { settings: platform } = usePlatformSettings();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -72,10 +75,10 @@ function LoginPage() {
           <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20 backdrop-blur-sm">
-                <GraduationCap className="h-7 w-7 text-teal-300" strokeWidth={1.75} aria-hidden />
+                <PlatformLogo size={48} className="rounded-2xl" />
               </div>
               <div>
-                <p className="text-lg font-bold tracking-tight">NexusCRM</p>
+                <p className="text-lg font-bold tracking-tight">{platform.platformName}</p>
                 <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-teal-300/90">School ERP</p>
               </div>
             </div>
@@ -105,7 +108,9 @@ function LoginPage() {
               </ul>
             </div>
 
-            <p className="text-xs text-slate-500">© {new Date().getFullYear()} School ERP. All rights reserved.</p>
+            <p className="text-xs text-slate-500">
+              © {new Date().getFullYear()} {platform.platformName}. All rights reserved.
+            </p>
           </div>
         </div>
 
@@ -128,11 +133,13 @@ function LoginPage() {
               <div className="rounded-[1.75rem] border border-white/12 bg-white/[0.06] p-4 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.9)] backdrop-blur-xl">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/20">
-                      <GraduationCap className="h-5 w-5 text-teal-300" strokeWidth={1.75} aria-hidden />
+                    <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/20">
+                      <PlatformLogo size={44} className="rounded-2xl" />
                     </div>
                     <div>
-                      <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-teal-300/90">School ERP</p>
+                      <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-teal-300/90">
+                        {platform.platformName}
+                      </p>
                       <h2 className="text-lg font-bold text-white">Welcome back</h2>
                     </div>
                   </div>

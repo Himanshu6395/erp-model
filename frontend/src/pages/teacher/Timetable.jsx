@@ -1,153 +1,174 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { CalendarDays, Clock, Printer, Sparkles } from "lucide-react";
 import { teacherService } from "../../services/teacherService";
+import { EmptyState, inputClass, labelClass, PageCard, PageHeader } from "./teacherPageUi";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const SUBJECT_COLORS = [
+  "bg-blue-50 border-blue-200 text-blue-900",
+  "bg-emerald-50 border-emerald-200 text-emerald-900",
+  "bg-violet-50 border-violet-200 text-violet-900",
+  "bg-amber-50 border-amber-200 text-amber-900",
+  "bg-rose-50 border-rose-200 text-rose-900",
+  "bg-cyan-50 border-cyan-200 text-cyan-900",
+];
 
-function cellStyle(label) {
-  const s = String(label || "—");
+const btnSecondary =
+  "inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50";
+
+function labelSlot(item) {
+  return item.subjectId?.name || item.subject || "Period";
+}
+
+function cellStyle(subjectLabel) {
   let h = 0;
-  for (let i = 0; i < s.length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
-  return { backgroundColor: `hsl(${Math.abs(h) % 360} 40% 92%)` };
-}
-
-function labelSlot(row) {
-  if (!row) return "—";
-  if (row.isBreak) return row.subjectLabel || "Break";
-  return row.subjectId?.name || row.subjectLabel || row.subject || "—";
-}
-
-function buildGrid(rows) {
-  const periodSet = new Set();
-  for (const r of rows || []) {
-    const p = r.periodNumber ?? r.period;
-    if (p != null) periodSet.add(Number(p));
-  }
-  const periods = [...periodSet].sort((a, b) => a - b);
-  const map = {};
-  for (const r of rows || []) {
-    const d = r.day;
-    const p = Number(r.periodNumber ?? r.period);
-    if (!map[d]) map[d] = {};
-    map[d][p] = r;
-  }
-  return { periods, map };
+  for (let i = 0; i < subjectLabel.length; i++) h = (h + subjectLabel.charCodeAt(i)) % SUBJECT_COLORS.length;
+  return SUBJECT_COLORS[h];
 }
 
 function TeacherTimetablePage() {
-  const [academicYear, setAcademicYear] = useState("2025-2026");
-  const [filterDay, setFilterDay] = useState("");
   const [weekly, setWeekly] = useState([]);
   const [today, setToday] = useState([]);
+  const [academicYear, setAcademicYear] = useState("");
+  const [filterDay, setFilterDay] = useState("");
 
-  const params = useMemo(() => ({ academicYear, ...(filterDay ? { day: filterDay } : {}) }), [academicYear, filterDay]);
-
-  const load = useCallback(async () => {
+  const load = async () => {
     try {
-      const [weekData, todayData] = await Promise.all([
-        teacherService.getTeacherTimetable(params),
-        teacherService.getTodayTimetable({ academicYear }),
-      ]);
-      setWeekly(weekData);
-      setToday(todayData);
+      const params = {};
+      if (academicYear.trim()) params.academicYear = academicYear.trim();
+      const [w, t] = await Promise.all([teacherService.getTimetable(params), teacherService.getTodayTimetable()]);
+      setWeekly(w);
+      setToday(t);
     } catch (error) {
       toast.error(error.message);
     }
-  }, [params, academicYear]);
+  };
 
   useEffect(() => {
     load();
-  }, [load]);
+  }, []);
 
-  const grid = useMemo(() => buildGrid(weekly), [weekly]);
+  const grid = useMemo(() => {
+    const map = {};
+    let maxPeriod = 0;
+    for (const row of weekly) {
+      const day = row.dayOfWeek;
+      const p = row.periodNumber ?? row.period ?? 1;
+      maxPeriod = Math.max(maxPeriod, p);
+      if (!map[day]) map[day] = {};
+      map[day][p] = row;
+    }
+    const periods = [];
+    for (let i = 1; i <= maxPeriod; i++) periods.push(i);
+    return { map, periods };
+  }, [weekly]);
 
   const printView = () => window.print();
 
   return (
-    <div className="space-y-6 print:space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
-        <h2 className="text-2xl font-bold text-gray-900">My timetable</h2>
-        <div className="flex flex-wrap gap-2">
-          <input className="input w-36" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} placeholder="Year" />
-          <select className="input w-40" value={filterDay} onChange={(e) => setFilterDay(e.target.value)}>
-            <option value="">Week (all days)</option>
-            {DAYS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-          <button type="button" className="btn-secondary" onClick={printView}>
-            Print / PDF
-          </button>
-        </div>
-      </div>
+    <div className="space-y-8 print:space-y-4">
+      <PageHeader
+        badge="Schedule"
+        title="My timetable"
+        subtitle="Weekly grid and today’s classes — read-only, managed by school admin."
+        actions={
+          <>
+            <input className={`${inputClass} w-36`} value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} placeholder="Academic year" />
+            <select className={`${inputClass} w-44`} value={filterDay} onChange={(e) => setFilterDay(e.target.value)}>
+              <option value="">All days</option>
+              {DAYS.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <button type="button" className={btnSecondary} onClick={load}>
+              Refresh
+            </button>
+            <button type="button" className={btnSecondary} onClick={printView}>
+              <Printer className="h-4 w-4" /> Print / PDF
+            </button>
+          </>
+        }
+      />
 
       <div className="print:hidden">
-      <FormCard title="Today" subtitle="Read-only — managed by school admin.">
-        <div className="space-y-2 text-sm">
-          {today.map((item) => (
-            <div key={item._id} className="rounded border border-gray-100 bg-gray-50 px-3 py-2">
-              P{item.periodNumber ?? item.period} | {labelSlot(item)} | {item.classId?.name}-{item.classId?.section} {item.section || ""} |{" "}
-              {item.startTime}-{item.endTime}
-              {item.roomNumber ? ` · Room ${item.roomNumber}` : ""}
+        <PageCard title="Today" subtitle="Your classes for today" icon={Sparkles}>
+          {!today.length ? (
+            <EmptyState icon={CalendarDays} title="No classes today" message="Enjoy your free day or check the weekly grid below." />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {today.map((item) => (
+                <div
+                  key={item._id}
+                  className={`rounded-2xl border p-4 shadow-sm ${cellStyle(labelSlot(item))}`}
+                >
+                  <p className="text-xs font-bold uppercase tracking-wide opacity-70">Period {item.periodNumber ?? item.period}</p>
+                  <p className="mt-1 text-lg font-bold">{labelSlot(item)}</p>
+                  <p className="mt-1 text-sm opacity-80">
+                    {item.classId?.name}-{item.classId?.section} {item.section || ""}
+                  </p>
+                  <p className="mt-2 inline-flex items-center gap-1 text-sm font-medium">
+                    <Clock className="h-3.5 w-3.5" />
+                    {item.startTime} – {item.endTime}
+                    {item.roomNumber ? ` · Room ${item.roomNumber}` : ""}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
-          {!today.length && <div className="text-gray-500">No classes today.</div>}
-        </div>
-      </FormCard>
+          )}
+        </PageCard>
       </div>
 
-      <FormCard title="Weekly grid" subtitle="">
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className="border border-gray-200 bg-gray-100 px-2 py-2 text-left">Day</th>
-                {grid.periods.map((p) => (
-                  <th key={p} className="border border-gray-200 bg-gray-100 px-2 py-2 text-center">
-                    P{p}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {DAYS.filter((d) => !filterDay || d === filterDay).map((d) => (
-                <tr key={d}>
-                  <td className="border border-gray-200 bg-gray-50 px-2 py-2 font-medium">{d}</td>
-                  {grid.periods.map((p) => {
-                    const cell = grid.map[d]?.[p];
-                    return (
-                      <td
-                        key={p}
-                        className="border border-gray-200 px-1 py-2 align-top text-xs"
-                        style={cell ? cellStyle(labelSlot(cell)) : undefined}
-                      >
-                        {cell ? (
-                          <>
-                            <div className="font-semibold">{labelSlot(cell)}</div>
-                            <div className="text-gray-600">
-                              {cell.startTime}-{cell.endTime}
-                            </div>
-                            <div className="text-gray-500">
-                              {cell.classId?.name}-{cell.classId?.section}
-                              {cell.roomNumber ? ` · ${cell.roomNumber}` : ""}
-                            </div>
-                          </>
-                        ) : (
-                          <span className="text-gray-300">—</span>
-                        )}
-                      </td>
-                    );
-                  })}
+      <PageCard title="Weekly grid" subtitle="Color-coded by subject" icon={CalendarDays}>
+        {!weekly.length ? (
+          <EmptyState icon={CalendarDays} title="No timetable" message="No periods are assigned to you yet." />
+        ) : (
+          <div className="teacher-table-scroll overflow-x-auto rounded-2xl border border-slate-200/80">
+            <table className="min-w-full border-collapse text-sm">
+              <thead>
+                <tr>
+                  <th className="border border-slate-200 bg-slate-100 px-3 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600">Day</th>
+                  {grid.periods.map((p) => (
+                    <th key={p} className="border border-slate-200 bg-slate-100 px-2 py-3 text-center text-xs font-bold text-slate-600">
+                      P{p}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {!weekly.length && <p className="mt-2 text-sm text-gray-500">No timetable rows assigned to you.</p>}
-      </FormCard>
+              </thead>
+              <tbody>
+                {DAYS.filter((d) => !filterDay || d === filterDay).map((d) => (
+                  <tr key={d}>
+                    <td className="border border-slate-200 bg-slate-50 px-3 py-3 font-semibold text-slate-800">{d}</td>
+                    {grid.periods.map((p) => {
+                      const cell = grid.map[d]?.[p];
+                      return (
+                        <td key={p} className="border border-slate-200 px-1 py-2 align-top">
+                          {cell ? (
+                            <div className={`rounded-xl border p-2 text-xs ${cellStyle(labelSlot(cell))}`}>
+                              <div className="font-bold">{labelSlot(cell)}</div>
+                              <div className="mt-0.5 opacity-80">
+                                {cell.startTime}–{cell.endTime}
+                              </div>
+                              <div className="mt-0.5 opacity-70">
+                                {cell.classId?.name}-{cell.classId?.section}
+                                {cell.roomNumber ? ` · ${cell.roomNumber}` : ""}
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="block py-4 text-center text-slate-300">—</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </PageCard>
     </div>
   );
 }

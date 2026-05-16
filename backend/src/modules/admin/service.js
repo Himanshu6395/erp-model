@@ -10,6 +10,8 @@ import Timetable from "../../models/Timetable.js";
 import * as feeDomain from "./feeDomain.js";
 import * as feeCalc from "../../common/utils/feeCalculations.js";
 import { schoolAdminNoticeService } from "../notices/schoolAdminNotice.service.js";
+import { TEACHER_LEAVE_TYPES } from "../../models/TeacherLeave.js";
+import { formatTeacherLeaveRow } from "../teacherLeave/teacherLeave.utils.js";
 
 const ensureSchoolAdmin = (user) => {
   if (!user?.schoolId) throw new AppError("School context missing for current user", 400);
@@ -817,6 +819,7 @@ const markTeacherAttendance = async (user, payload) => {
     teacherId: payload.teacherId,
     date: new Date(payload.date),
     status: payload.status,
+    remarks: payload.remarks,
   });
   await logActivity(user, "MARK", "TEACHER_ATTENDANCE", data._id);
   return data;
@@ -824,9 +827,13 @@ const markTeacherAttendance = async (user, payload) => {
 
 const teacherAttendanceReport = async (user, { teacherId, from, to }) => {
   const schoolId = ensureSchoolAdmin(user);
+  if (teacherId) {
+    const teacher = await adminRepository.findTeacherById({ schoolId, teacherId });
+    if (!teacher) throw new AppError("Teacher not found", 404);
+  }
   return adminRepository.teacherAttendanceReport({
     schoolId,
-    teacherId,
+    ...(teacherId ? { teacherId } : {}),
     from: toDate(from) || new Date("2000-01-01"),
     to: toDate(to) || new Date("2999-12-31"),
   });
@@ -1309,6 +1316,137 @@ const changePassword = async (user, payload) => {
   return { changed: true };
 };
 
+const teacherLeaveTypeSet = new Set(TEACHER_LEAVE_TYPES);
+
+const buildTeacherLeaveAdminFilter = (query) => {
+  const filter = {};
+  if (query.status && ["PENDING", "APPROVED", "REJECTED", "CANCELLED"].includes(String(query.status))) {
+    filter.status = query.status;
+  }
+  if (query.leaveType && teacherLeaveTypeSet.has(String(query.leaveType).toUpperCase())) {
+    filter.leaveType = String(query.leaveType).toUpperCase();
+  }
+  if (query.teacherId) filter.teacherId = query.teacherId;
+  if (query.from || query.to) {
+    const fromD = query.from ? new Date(query.from) : new Date("1970-01-01");
+    const toD = query.to ? new Date(query.to) : new Date("9999-12-31");
+    fromD.setHours(0, 0, 0, 0);
+    toD.setHours(23, 59, 59, 999);
+    filter.fromDate = { $lte: toD };
+    filter.toDate = { $gte: fromD };
+  }
+  return filter;
+};
+
+const listTeacherLeavesAdmin = async (user, query = {}) => {
+  const schoolId = ensureSchoolAdmin(user);
+  const filter = buildTeacherLeaveAdminFilter(query);
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
+  const skip = (page - 1) * limit;
+  const [rows, total] = await Promise.all([
+    adminRepository.listTeacherLeaves({ schoolId, filter, skip, limit }),
+    adminRepository.countTeacherLeaves({ schoolId, filter }),
+  ]);
+  let items = rows.map(formatTeacherLeaveRow);
+  const search = String(query.search || "").trim().toLowerCase();
+  if (search) {
+    items = items.filter(
+      (r) =>
+        String(r.teacherName || "").toLowerCase().includes(search) ||
+        String(r.reason || "").toLowerCase().includes(search) ||
+        String(r.leaveType || "").toLowerCase().includes(search)
+    );
+  }
+  return { items, page, limit, total, totalPages: Math.ceil(total / limit) || 1 };
+};
+
+const getTeacherLeaveStatsAdmin = async (user) => {
+  const schoolId = ensureSchoolAdmin(user);
+  return adminRepository.aggregateTeacherLeaveStats({ schoolId });
+};
+
+const getTeacherLeaveChartsAdmin = async (user) => {
+  const schoolId = ensureSchoolAdmin(user);
+  const now = new Date();
+  const [monthly, byType] = await Promise.all([
+    adminRepository.aggregateTeacherLeavesByMonth({
+      schoolId,
+      year: now.getFullYear(),
+      month: now.getMonth() + 1,
+    }),
+    adminRepository.aggregateTeacherLeavesByType({ schoolId }),
+  ]);
+  return {
+    monthly,
+    byType: byType.map((r) => ({ type: r._id, count: r.count })),
+  };
+};
+
+const getTeacherLeaveByIdAdmin = async (user, leaveId) => {
+  const schoolId = ensureSchoolAdmin(user);
+  const row = await adminRepository.findTeacherLeaveById({ schoolId, leaveId });
+  if (!row) throw new AppError("Leave request not found", 404);
+  return formatTeacherLeaveRow(row);
+};
+
+const decideTeacherLeaveAdmin = async (user, leaveId, body) => {
+  const schoolId = ensureSchoolAdmin(user);
+  const leave = await adminRepository.findTeacherLeaveById({ schoolId, leaveId });
+  if (!leave) throw new AppError("Leave request not found", 404);
+  if (leave.status !== "PENDING") throw new AppError("This leave request is already processed", 400);
+
+  const status = String(body.status || "").toUpperCase();
+  if (!["APPROVED", "REJECTED"].includes(status)) throw new AppError("Status must be APPROVED or REJECTED", 400);
+  const adminRemarks = String(body.adminRemarks || body.remarks || "").trim();
+  if (status === "REJECTED" && !adminRemarks) throw new AppError("Remarks are required when rejecting", 400);
+
+  const updated = await adminRepository.updateTeacherLeave({
+    schoolId,
+    leaveId,
+    payload: {
+      status,
+      adminRemarks,
+      approvedBy: user.userId,
+      reviewedAt: new Date(),
+    },
+  });
+
+  const teacherRef = leave.teacherId;
+  const teacherUserId = teacherRef?.userId?._id || teacherRef?.userId;
+  if (teacherUserId) {
+    const fromStr = new Date(leave.fromDate || leave.startDate).toLocaleDateString();
+    const toStr = new Date(leave.toDate || leave.endDate).toLocaleDateString();
+    await adminRepository.createNotification({
+      schoolId,
+      userId: teacherUserId,
+      title: status === "APPROVED" ? "Leave approved" : "Leave rejected",
+      message:
+        status === "APPROVED"
+          ? `Your ${leave.leaveType} leave from ${fromStr} to ${toStr} was approved.${adminRemarks ? ` Remarks: ${adminRemarks}` : ""}`
+          : `Your ${leave.leaveType} leave from ${fromStr} to ${toStr} was rejected. Remarks: ${adminRemarks}`,
+      type: "TEACHER_LEAVE_STATUS",
+    });
+  }
+
+  await logActivity(user, status === "APPROVED" ? "APPROVE" : "REJECT", "TEACHER_LEAVE", leaveId);
+  return formatTeacherLeaveRow(updated);
+};
+
+const deleteTeacherLeaveAdmin = async (user, leaveId) => {
+  const schoolId = ensureSchoolAdmin(user);
+  const deleted = await adminRepository.deleteTeacherLeave({ schoolId, leaveId });
+  if (!deleted) throw new AppError("Leave request not found", 404);
+  await logActivity(user, "DELETE", "TEACHER_LEAVE", leaveId);
+  return { deleted: true };
+};
+
+const getPendingTeacherLeaveBadge = async (user) => {
+  const schoolId = ensureSchoolAdmin(user);
+  const count = await adminRepository.countPendingTeacherLeaves({ schoolId });
+  return { count };
+};
+
 export const adminService = {
   getDashboard,
   createStudent,
@@ -1355,4 +1493,11 @@ export const adminService = {
   deleteNotice,
   updateSchoolProfile,
   changePassword,
+  listTeacherLeavesAdmin,
+  getTeacherLeaveStatsAdmin,
+  getTeacherLeaveChartsAdmin,
+  getTeacherLeaveByIdAdmin,
+  decideTeacherLeaveAdmin,
+  deleteTeacherLeaveAdmin,
+  getPendingTeacherLeaveBadge,
 };

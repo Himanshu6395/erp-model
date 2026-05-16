@@ -5,7 +5,12 @@ const teacherAttendanceSchema = new mongoose.Schema(
     schoolId: { type: mongoose.Schema.Types.ObjectId, ref: "School", required: true, index: true },
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "Teacher", required: true, index: true },
     date: { type: Date, required: true },
-    status: { type: String, enum: ["PRESENT", "ABSENT"], required: true },
+    status: {
+      type: String,
+      enum: ["PRESENT", "ABSENT", "LEAVE", "HALF_DAY"],
+      required: true,
+    },
+    remarks: { type: String, trim: true, default: "" },
   },
   { timestamps: true }
 );

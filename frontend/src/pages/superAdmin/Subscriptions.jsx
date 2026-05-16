@@ -1,17 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import {
-  CalendarClock,
-  Filter,
-  Layers,
-  RefreshCw,
-  School,
-  Sparkles,
-} from "lucide-react";
+import { CalendarClock, Layers, RefreshCw, School, Sparkles } from "lucide-react";
 import Loader from "../../components/Loader";
+import FilterField from "../../components/superAdmin/FilterField";
+import SuperAdminFilterMenu from "../../components/superAdmin/SuperAdminFilterMenu";
 import { superAdminOpsService } from "../../services/superAdminOpsService";
+import { SA_INPUT_WITH_H, SA_SELECT_WITH_H, countActiveFilters } from "./superAdminUi";
+import { usePlatformSettings } from "../../hooks/usePlatformSettings";
 
 function SubscriptionsPage() {
+  const { formatDate } = usePlatformSettings();
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState([]);
   const [plans, setPlans] = useState([]);
@@ -22,6 +20,7 @@ function SubscriptionsPage() {
   const [filterSearch, setFilterSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterPlanId, setFilterPlanId] = useState("");
+  const [draft, setDraft] = useState({ search: "", status: "", planId: "" });
 
   const load = async () => {
     setLoading(true);
@@ -46,7 +45,13 @@ function SubscriptionsPage() {
     return { total: rows.length, active, trial };
   }, [rows]);
 
-  const filtersActive = Boolean(filterSearch.trim() || filterStatus || filterPlanId);
+  const filterBadgeCount = countActiveFilters({ search: filterSearch, status: filterStatus, planId: filterPlanId });
+  const syncDraft = () => setDraft({ search: filterSearch, status: filterStatus, planId: filterPlanId });
+  const applyFilters = () => {
+    setFilterSearch(draft.search);
+    setFilterStatus(draft.status);
+    setFilterPlanId(draft.planId);
+  };
 
   const filteredRows = useMemo(() => {
     const q = filterSearch.trim().toLowerCase();
@@ -63,6 +68,7 @@ function SubscriptionsPage() {
   }, [rows, filterSearch, filterStatus, filterPlanId]);
 
   const clearFilters = () => {
+    setDraft({ search: "", status: "", planId: "" });
     setFilterSearch("");
     setFilterStatus("");
     setFilterPlanId("");
@@ -173,71 +179,35 @@ function SubscriptionsPage() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-900/[0.06] ring-1 ring-slate-100/90">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2 text-slate-800">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-brand-600 text-white shadow-sm">
-                <Filter className="h-4 w-4" aria-hidden />
-              </span>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">Filters</h2>
-                <p className="text-xs text-slate-500">Narrow the subscription list (client-side)</p>
-              </div>
-            </div>
-            {filtersActive ? (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="self-start rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-              >
-                Clear all
-              </button>
-            ) : null}
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">Search</label>
-              <input
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                placeholder="School or plan name…"
-                value={filterSearch}
-                onChange={(e) => setFilterSearch(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">Status</label>
-              <select
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="">All statuses</option>
-                <option value="ACTIVE">Active</option>
-                <option value="TRIAL">Trial</option>
-                <option value="EXPIRED">Expired</option>
-                <option value="CANCELLED">Cancelled</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">Plan</label>
-              <select
-                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-                value={filterPlanId}
-                onChange={(e) => setFilterPlanId(e.target.value)}
-              >
-                <option value="">All plans</option>
-                {plans.map((plan) => (
-                  <option key={plan._id} value={plan._id}>
-                    {plan.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Showing <span className="font-semibold text-slate-700">{filteredRows.length}</span> of {rows.length} subscriptions
-            {filtersActive ? " (filtered)" : ""}.
+        <div className="flex flex-col gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-sm text-slate-600">
+            Showing <span className="font-semibold text-slate-900">{filteredRows.length}</span> of {rows.length} subscriptions
+            {filterBadgeCount ? <span className="text-slate-500"> (filtered)</span> : null}
           </p>
+          <SuperAdminFilterMenu activeCount={filterBadgeCount} onOpen={syncDraft} onApply={applyFilters} onClear={clearFilters}>
+            <div className="space-y-4">
+              <FilterField label="Search">
+                <input className={SA_INPUT_WITH_H} placeholder="School or plan name…" value={draft.search} onChange={(e) => setDraft((d) => ({ ...d, search: e.target.value }))} />
+              </FilterField>
+              <FilterField label="Status">
+                <select className={SA_SELECT_WITH_H} value={draft.status} onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value }))}>
+                  <option value="">All statuses</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="TRIAL">Trial</option>
+                  <option value="EXPIRED">Expired</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
+              </FilterField>
+              <FilterField label="Plan">
+                <select className={SA_SELECT_WITH_H} value={draft.planId} onChange={(e) => setDraft((d) => ({ ...d, planId: e.target.value }))}>
+                  <option value="">All plans</option>
+                  {plans.map((plan) => (
+                    <option key={plan._id} value={plan._id}>{plan.name}</option>
+                  ))}
+                </select>
+              </FilterField>
+            </div>
+          </SuperAdminFilterMenu>
         </div>
 
         <div className="overflow-x-auto">
@@ -258,10 +228,10 @@ function SubscriptionsPage() {
                   <td className="px-5 py-4 font-semibold text-slate-900 sm:px-6">{row.schoolId?.name || "—"}</td>
                   <td className="py-4 pr-4 text-slate-700">{row.planId?.name || "—"}</td>
                   <td className="py-4 pr-4 tabular-nums text-slate-600">
-                    {row.startDate ? new Date(row.startDate).toLocaleDateString() : "—"}
+                    {formatDate(row.startDate)}
                   </td>
                   <td className="py-4 pr-4 tabular-nums text-slate-600">
-                    {row.endDate ? new Date(row.endDate).toLocaleDateString() : "—"}
+                    {formatDate(row.endDate)}
                   </td>
                   <td className="py-4 pr-4">
                     <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${statusBadge(row.status)}`}>
@@ -365,7 +335,7 @@ function SubscriptionsPage() {
                 <option value="">Choose subscription…</option>
                 {rows.map((row) => (
                   <option key={row._id} value={row._id}>
-                    {row.schoolId?.name} — ends {row.endDate ? new Date(row.endDate).toLocaleDateString() : "—"}
+                    {row.schoolId?.name} — ends {formatDate(row.endDate)}
                   </option>
                 ))}
               </select>

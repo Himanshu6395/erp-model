@@ -75,10 +75,21 @@ const studentPerformanceInsights = async (req, res) =>
   res.json({ success: true, data: await teacherService.studentPerformanceInsights(req.user) });
 
 const applyLeave = async (req, res) =>
-  res.status(201).json({ success: true, data: await teacherService.applyLeave(req.user, req.body) });
+  res.status(201).json({ success: true, data: await teacherService.applyLeave(req.user, req.body, req.file) });
+const updateLeave = async (req, res) =>
+  res.json({ success: true, data: await teacherService.updateLeave(req.user, req.params.leaveId, req.body, req.file) });
+const deleteLeave = async (req, res) =>
+  res.json({ success: true, data: await teacherService.deleteLeave(req.user, req.params.leaveId) });
 const cancelLeave = async (req, res) =>
   res.json({ success: true, data: await teacherService.cancelLeave(req.user, req.params.leaveId) });
-const listLeaves = async (req, res) => res.json({ success: true, data: await teacherService.listLeaves(req.user) });
+const listLeaves = async (req, res) =>
+  res.json({ success: true, data: await teacherService.listLeaves(req.user, req.query) });
+const getLeaveStats = async (req, res) =>
+  res.json({ success: true, data: await teacherService.getLeaveStats(req.user) });
+const getLeaveById = async (req, res) =>
+  res.json({ success: true, data: await teacherService.getLeaveById(req.user, req.params.leaveId) });
+const getUnreadNotificationCount = async (req, res) =>
+  res.json({ success: true, data: await teacherService.getUnreadNotificationCount(req.user) });
 
 const listStudentLeavesForClassTeacher = async (req, res) =>
   res.json({ success: true, data: await teacherService.listStudentLeavesForClassTeacher(req.user, req.query) });
@@ -110,8 +121,18 @@ const listNotifications = async (req, res) =>
 const markNotificationRead = async (req, res) =>
   res.json({ success: true, data: await teacherService.markNotificationRead(req.user, req.params.notificationId) });
 
+const getProfileSettings = async (req, res) =>
+  res.json({ success: true, data: await teacherService.getProfileSettings(req.user) });
 const updateProfile = async (req, res) =>
-  res.json({ success: true, data: await teacherService.updateProfile(req.user, req.body) });
+  res.json({ success: true, data: await teacherService.updateProfile(req.user, req.body, req.files) });
+const uploadProfilePhoto = async (req, res) =>
+  res.json({ success: true, data: await teacherService.uploadProfilePhoto(req.user, req.file) });
+const getSecurityInfo = async (req, res) =>
+  res.json({ success: true, data: await teacherService.getSecurityInfo(req.user) });
+const updatePreferences = async (req, res) =>
+  res.json({ success: true, data: await teacherService.updatePreferences(req.user, req.body) });
+const updateNotificationPrefs = async (req, res) =>
+  res.json({ success: true, data: await teacherService.updateNotificationPrefs(req.user, req.body) });
 const changePassword = async (req, res) =>
   res.json({ success: true, data: await teacherService.changePassword(req.user, req.body) });
 
@@ -155,8 +176,13 @@ export const teacherController = {
   listAssignedClassesWithSubjects,
   studentPerformanceInsights,
   applyLeave,
+  updateLeave,
+  deleteLeave,
   cancelLeave,
   listLeaves,
+  getLeaveStats,
+  getLeaveById,
+  getUnreadNotificationCount,
   listStudentLeavesForClassTeacher,
   getStudentLeaveStats,
   decideStudentLeave,
@@ -168,7 +194,12 @@ export const teacherController = {
   answerDoubt,
   listNotifications,
   markNotificationRead,
+  getProfileSettings,
   updateProfile,
+  uploadProfilePhoto,
+  getSecurityInfo,
+  updatePreferences,
+  updateNotificationPrefs,
   changePassword,
   salaryAndPayslip,
   activityLogs,

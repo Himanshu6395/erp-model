@@ -19,6 +19,8 @@ import {
 import StatCard from "../../components/StatCard";
 import Loader from "../../components/Loader";
 import { teacherService } from "../../services/teacherService";
+import { useTeacherProfile } from "../../hooks/useTeacherProfile";
+import ErpUserAvatar from "../../components/common/ErpUserAvatar";
 
 function SectionCard({ icon: Icon, title, subtitle, children, accent = "brand" }) {
   const headers = {
@@ -85,7 +87,7 @@ function TeacherDashboard() {
 
   if (loading) return <Loader text="Loading teacher dashboard..." />;
 
-  const teacherName = data?.profile?.name || "Teacher";
+  const teacherName = displayName || data?.profile?.name || "Teacher";
 
   return (
     <div className="space-y-8 pb-2">
@@ -104,6 +106,13 @@ function TeacherDashboard() {
         />
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <ErpUserAvatar
+            src={avatarUrl}
+            name={teacherName}
+            email={data?.profile?.email}
+            size={72}
+            className="hidden shrink-0 ring-4 ring-white/30 shadow-xl lg:flex"
+          />
           <div className="max-w-2xl">
             <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-200/95 backdrop-blur-sm">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" aria-hidden />

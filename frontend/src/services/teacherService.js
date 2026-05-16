@@ -47,9 +47,14 @@ export const teacherService = {
 
   getPerformanceInsights: async () => (await api.get("/teacher/performance/insights")).data.data,
 
-  applyLeave: async (payload) => (await api.post("/teacher/leaves", payload)).data.data,
-  getLeaves: async () => (await api.get("/teacher/leaves")).data.data,
+  applyLeave: async (formData) => (await api.post("/teacher/leaves", formData)).data.data,
+  updateLeave: async (leaveId, formData) => (await api.put(`/teacher/leaves/${leaveId}`, formData)).data.data,
+  deleteLeave: async (leaveId) => (await api.delete(`/teacher/leaves/${leaveId}`)).data.data,
+  getLeaves: async (params) => (await api.get("/teacher/leaves", { params })).data.data,
+  getLeaveStats: async () => (await api.get("/teacher/leaves/stats")).data.data,
+  getLeaveById: async (leaveId) => (await api.get(`/teacher/leaves/${leaveId}`)).data.data,
   cancelLeave: async (leaveId) => (await api.put(`/teacher/leaves/${leaveId}/cancel`)).data.data,
+  getUnreadNotificationCount: async () => (await api.get("/teacher/notifications/unread-count")).data.data,
 
   createDiary: async (payload) => (await api.post("/teacher/diary", payload)).data.data,
   getDiary: async () => (await api.get("/teacher/diary")).data.data,
@@ -63,6 +68,17 @@ export const teacherService = {
   getNotifications: async () => (await api.get("/teacher/notifications")).data.data,
   markNotificationRead: async (notificationId) => (await api.put(`/teacher/notifications/${notificationId}/read`)).data.data,
 
+  getProfileSettings: async () => (await api.get("/teacher/settings/profile")).data.data,
+  updateProfileSettings: async (formData) =>
+    (await api.post("/teacher/settings/profile", formData)).data.data,
+  uploadProfilePhoto: async (file) => {
+    const fd = new FormData();
+    fd.append("profileImage", file);
+    return (await api.post("/teacher/settings/profile/photo", fd)).data.data;
+  },
+  getSecurityInfo: async () => (await api.get("/teacher/settings/security")).data.data,
+  updatePreferences: async (payload) => (await api.put("/teacher/settings/preferences", payload)).data.data,
+  updateNotificationPrefs: async (payload) => (await api.put("/teacher/settings/notifications", payload)).data.data,
   updateProfile: async (payload) => (await api.put("/teacher/profile", payload)).data.data,
   changePassword: async (payload) => (await api.put("/teacher/change-password", payload)).data.data,
 

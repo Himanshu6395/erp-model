@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   ArrowLeft,
@@ -99,68 +100,45 @@ const STEPS = [
     title: "School & location",
     subtitle: "Registered identity, primary contacts, and postal address",
     icon: Building2,
-    bar: "from-violet-600 via-purple-600 to-indigo-800",
-    chip: "from-violet-500 to-purple-600",
-    railActive: "border-violet-400 bg-gradient-to-r from-violet-100/95 via-purple-50/90 to-white shadow-md shadow-violet-500/10 ring-2 ring-violet-300/60",
-    railDone: "border-emerald-300/80 bg-gradient-to-r from-emerald-50 to-teal-50/50 hover:border-emerald-400",
-    railIdle: "border-slate-200/90 bg-white/80 hover:border-violet-200 hover:bg-violet-50/40",
   },
   {
     id: "academic",
     title: "Academic structure",
     subtitle: "Classes offered, capacity, and academic session",
     icon: BookOpen,
-    bar: "from-cyan-500 via-brand-600 to-blue-800",
-    chip: "from-cyan-500 to-brand-600",
-    railActive: "border-cyan-400 bg-gradient-to-r from-cyan-100/95 via-brand-50/80 to-white shadow-md shadow-cyan-500/10 ring-2 ring-cyan-300/60",
-    railDone: "border-emerald-300/80 bg-gradient-to-r from-emerald-50 to-cyan-50/40 hover:border-emerald-400",
-    railIdle: "border-slate-200/90 bg-white/80 hover:border-cyan-200 hover:bg-cyan-50/40",
   },
   {
     id: "admin",
     title: "Administrator account",
     subtitle: "Initial school admin credentials (created with the tenant)",
     icon: UserCog,
-    bar: "from-amber-500 via-orange-500 to-rose-600",
-    chip: "from-amber-500 to-orange-600",
-    railActive: "border-amber-400 bg-gradient-to-r from-amber-100/95 via-orange-50/80 to-white shadow-md shadow-amber-500/15 ring-2 ring-amber-300/60",
-    railDone: "border-emerald-300/80 bg-gradient-to-r from-emerald-50 to-amber-50/40 hover:border-emerald-400",
-    railIdle: "border-slate-200/90 bg-white/80 hover:border-amber-200 hover:bg-amber-50/40",
   },
   {
     id: "operations",
     title: "Staff & enrollment",
     subtitle: "Headcount limits, departments, and student identifiers",
     icon: Users,
-    bar: "from-emerald-500 via-teal-600 to-cyan-700",
-    chip: "from-emerald-500 to-teal-600",
-    railActive: "border-emerald-400 bg-gradient-to-r from-emerald-100/95 via-teal-50/80 to-white shadow-md shadow-emerald-500/10 ring-2 ring-emerald-300/60",
-    railDone: "border-teal-300/80 bg-gradient-to-r from-teal-50 to-emerald-50/50 hover:border-teal-400",
-    railIdle: "border-slate-200/90 bg-white/80 hover:border-emerald-200 hover:bg-emerald-50/40",
   },
   {
     id: "commercial",
     title: "Subscription & billing",
     subtitle: "Plan terms, contract dates, and payment preferences",
     icon: CreditCard,
-    bar: "from-rose-500 via-pink-600 to-fuchsia-700",
-    chip: "from-rose-500 to-pink-600",
-    railActive: "border-rose-400 bg-gradient-to-r from-rose-100/95 via-pink-50/80 to-white shadow-md shadow-rose-500/10 ring-2 ring-rose-300/60",
-    railDone: "border-emerald-300/80 bg-gradient-to-r from-emerald-50 to-rose-50/40 hover:border-emerald-400",
-    railIdle: "border-slate-200/90 bg-white/80 hover:border-rose-200 hover:bg-rose-50/40",
   },
   {
     id: "polish",
     title: "Branding & governance",
     subtitle: "Visual identity, modules, access policy, and locale",
     icon: Palette,
-    bar: "from-indigo-600 via-violet-700 to-purple-900",
-    chip: "from-indigo-500 to-violet-700",
-    railActive: "border-indigo-400 bg-gradient-to-r from-indigo-100/95 via-violet-50/80 to-white shadow-md shadow-indigo-500/10 ring-2 ring-indigo-300/60",
-    railDone: "border-emerald-300/80 bg-gradient-to-r from-emerald-50 to-indigo-50/40 hover:border-emerald-400",
-    railIdle: "border-slate-200/90 bg-white/80 hover:border-indigo-200 hover:bg-indigo-50/40",
   },
 ];
+
+const FORM_GRID = "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4";
+const INPUT_H = "h-14 min-h-[56px]";
+const CONTROL_BASE = `w-full min-w-0 ${INPUT_H} rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 shadow-sm transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-[3px] focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`;
+const CONTROL_ERROR = "border-rose-400 bg-rose-50/40 focus:border-rose-500 focus:ring-rose-500/15";
+const CHECKBOX_CARD =
+  "flex min-h-[56px] cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300/70 hover:bg-slate-50/90 has-[:checked]:border-brand-500/60 has-[:checked]:bg-brand-50/50";
 
 function validateStep(stepIndex, form) {
   const errors = {};
@@ -259,25 +237,38 @@ function validateStep(stepIndex, form) {
   return errors;
 }
 
-function Field({ label, required, error, children }) {
+function Field({ label, required, error, hint, children, className = "" }) {
   return (
-    <div>
-      <label className="mb-1.5 flex items-baseline gap-1.5 text-sm font-medium text-slate-700">
+    <div className={`min-w-0 ${className}`}>
+      <label className="mb-2 block text-sm font-semibold text-slate-700">
         {label}
-        {required ? <span className="text-rose-500" title="Required">*</span> : null}
+        {required ? <span className="ml-0.5 text-rose-500" title="Required">*</span> : null}
       </label>
       {children}
-      {error ? <p className="mt-1.5 text-xs text-rose-600">{error}</p> : null}
+      {hint && !error ? <p className="mt-1.5 text-xs text-slate-500">{hint}</p> : null}
+      {error ? <p className="mt-1.5 text-xs font-medium text-rose-600">{error}</p> : null}
     </div>
   );
 }
 
-function SubsectionTitle({ children }) {
+function SubsectionTitle({ children, className = "" }) {
   return (
-    <p className="mb-4 border-b border-slate-200 border-l-4 border-l-brand-500 pl-3 pb-2 text-xs font-semibold uppercase tracking-wider text-slate-600">
-      {children}
-    </p>
+    <div className={`mb-4 mt-1 first:mt-0 ${className}`}>
+      <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">{children}</h3>
+      <div className="mt-2 h-px bg-gradient-to-r from-slate-200 via-slate-100 to-transparent" aria-hidden />
+    </div>
   );
+}
+
+function FormSection({ children }) {
+  return <div className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 sm:p-5">{children}</div>;
+}
+
+function railStepClass({ active, completed, locked }) {
+  if (active) return "border-brand-500 bg-brand-50/80 shadow-sm ring-2 ring-brand-500/20";
+  if (completed) return "border-emerald-200 bg-emerald-50/60 hover:border-emerald-300 hover:bg-emerald-50";
+  if (locked) return "cursor-not-allowed border-slate-200 bg-slate-50/80 opacity-50";
+  return "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50";
 }
 
 function CreateSchoolPage() {
@@ -366,12 +357,8 @@ function CreateSchoolPage() {
   };
 
   const err = (name) => fieldErrors[name];
-  const inputClass =
-    "input rounded-xl py-2.5 text-slate-900 shadow-sm transition-shadow focus:shadow-md";
-  const inputError = (name) =>
-    `${inputClass} ${err(name) ? "!border-rose-400 bg-rose-50/50 focus:!border-rose-500 focus:!ring-rose-100" : ""}`;
-  const checkboxClass =
-    "flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200/90 bg-gradient-to-r from-white to-slate-50/80 px-3.5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300/70 hover:from-brand-50/50 hover:to-violet-50/40 hover:shadow-md";
+  const controlClass = (name) => `${CONTROL_BASE} ${err(name) ? CONTROL_ERROR : ""}`;
+  const checkboxClass = CHECKBOX_CARD;
 
   const StepIcon = STEPS[step].icon;
 
@@ -379,28 +366,31 @@ function CreateSchoolPage() {
     switch (step) {
       case 0:
         return (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="space-y-6">
+            <FormSection>
+              <SubsectionTitle>School identity</SubsectionTitle>
+              <div className={FORM_GRID}>
             <Field label="School name" required error={err("schoolName")}>
-              <input className={inputError("schoolName")} name="schoolName" value={form.schoolName} onChange={onChange} />
+              <input className={controlClass("schoolName")} name="schoolName" value={form.schoolName} onChange={onChange} />
             </Field>
             <Field label="School code" required error={err("schoolCode")}>
-              <input className={inputError("schoolCode")} name="schoolCode" value={form.schoolCode} onChange={onChange} />
+              <input className={controlClass("schoolCode")} name="schoolCode" value={form.schoolCode} onChange={onChange} />
             </Field>
             <Field label="Official email" required error={err("email")}>
-              <input className={inputError("email")} name="email" type="email" value={form.email} onChange={onChange} />
+              <input className={controlClass("email")} name="email" type="email" value={form.email} onChange={onChange} />
             </Field>
             <Field label="Phone" required error={err("phoneNumber")}>
-              <input className={inputError("phoneNumber")} name="phoneNumber" value={form.phoneNumber} onChange={onChange} />
+              <input className={controlClass("phoneNumber")} name="phoneNumber" value={form.phoneNumber} onChange={onChange} />
             </Field>
             <Field label="Alternate phone" error={err("alternatePhone")}>
-              <input className={inputError("alternatePhone")} name="alternatePhone" value={form.alternatePhone} onChange={onChange} />
+              <input className={controlClass("alternatePhone")} name="alternatePhone" value={form.alternatePhone} onChange={onChange} />
             </Field>
             <Field label="Website" error={err("website")}>
-              <input className={inputError("website")} name="website" value={form.website} onChange={onChange} placeholder="https://" />
+              <input className={controlClass("website")} name="website" value={form.website} onChange={onChange} placeholder="https://" />
             </Field>
             <Field label="Established year" required error={err("establishedYear")}>
               <input
-                className={inputError("establishedYear")}
+                className={controlClass("establishedYear")}
                 name="establishedYear"
                 type="number"
                 value={form.establishedYear}
@@ -408,14 +398,14 @@ function CreateSchoolPage() {
               />
             </Field>
             <Field label="School type" required error={err("schoolType")}>
-              <select className={inputError("schoolType")} name="schoolType" value={form.schoolType} onChange={onChange}>
+              <select className={controlClass("schoolType")} name="schoolType" value={form.schoolType} onChange={onChange}>
                 <option>Private</option>
                 <option>Government</option>
                 <option>Semi-Govt</option>
               </select>
             </Field>
             <Field label="Affiliation board" required error={err("affiliationBoard")}>
-              <select className={inputError("affiliationBoard")} name="affiliationBoard" value={form.affiliationBoard} onChange={onChange}>
+              <select className={controlClass("affiliationBoard")} name="affiliationBoard" value={form.affiliationBoard} onChange={onChange}>
                 <option>CBSE</option>
                 <option>ICSE</option>
                 <option>State Board</option>
@@ -423,57 +413,61 @@ function CreateSchoolPage() {
               </select>
             </Field>
             <Field label="Medium" required error={err("medium")}>
-              <select className={inputError("medium")} name="medium" value={form.medium} onChange={onChange}>
+              <select className={controlClass("medium")} name="medium" value={form.medium} onChange={onChange}>
                 <option>English</option>
                 <option>Hindi</option>
                 <option>Other</option>
               </select>
             </Field>
-            <div className="sm:col-span-2 xl:col-span-2">
-              <Field label="Address line 1" required error={err("addressLine1")}>
-                <input className={inputError("addressLine1")} name="addressLine1" value={form.addressLine1} onChange={onChange} />
-              </Field>
-            </div>
-            <Field label="Address line 2" error={err("addressLine2")}>
-              <input className={inputError("addressLine2")} name="addressLine2" value={form.addressLine2} onChange={onChange} />
-            </Field>
-            <Field label="City" required error={err("city")}>
-              <input className={inputError("city")} name="city" value={form.city} onChange={onChange} />
-            </Field>
-            <Field label="State" required error={err("state")}>
-              <input className={inputError("state")} name="state" value={form.state} onChange={onChange} />
-            </Field>
-            <Field label="Country" required error={err("country")}>
-              <input className={inputError("country")} name="country" value={form.country} onChange={onChange} />
-            </Field>
-            <Field label="Pincode" required error={err("pincode")}>
-              <input className={inputError("pincode")} name="pincode" value={form.pincode} onChange={onChange} />
-            </Field>
-            <Field label="Latitude" required error={err("latitude")}>
-              <input className={inputError("latitude")} name="latitude" type="number" step="any" value={form.latitude} onChange={onChange} />
-            </Field>
-            <Field label="Longitude" required error={err("longitude")}>
-              <input className={inputError("longitude")} name="longitude" type="number" step="any" value={form.longitude} onChange={onChange} />
-            </Field>
+              </div>
+            </FormSection>
+            <FormSection>
+              <SubsectionTitle>Location</SubsectionTitle>
+              <div className={FORM_GRID}>
+                <Field label="Address line 1" required error={err("addressLine1")} className="sm:col-span-2 xl:col-span-2">
+                  <input className={controlClass("addressLine1")} name="addressLine1" value={form.addressLine1} onChange={onChange} />
+                </Field>
+                <Field label="Address line 2" error={err("addressLine2")} className="sm:col-span-2 xl:col-span-2">
+                  <input className={controlClass("addressLine2")} name="addressLine2" value={form.addressLine2} onChange={onChange} />
+                </Field>
+                <Field label="City" required error={err("city")}>
+                  <input className={controlClass("city")} name="city" value={form.city} onChange={onChange} />
+                </Field>
+                <Field label="State" required error={err("state")}>
+                  <input className={controlClass("state")} name="state" value={form.state} onChange={onChange} />
+                </Field>
+                <Field label="Country" required error={err("country")}>
+                  <input className={controlClass("country")} name="country" value={form.country} onChange={onChange} />
+                </Field>
+                <Field label="Pincode" required error={err("pincode")}>
+                  <input className={controlClass("pincode")} name="pincode" value={form.pincode} onChange={onChange} />
+                </Field>
+                <Field label="Latitude" required error={err("latitude")}>
+                  <input className={controlClass("latitude")} name="latitude" type="number" step="any" value={form.latitude} onChange={onChange} />
+                </Field>
+                <Field label="Longitude" required error={err("longitude")}>
+                  <input className={controlClass("longitude")} name="longitude" type="number" step="any" value={form.longitude} onChange={onChange} />
+                </Field>
+              </div>
+            </FormSection>
           </div>
         );
       case 1:
         return (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <div className="sm:col-span-2 xl:col-span-3">
-              <Field label="Classes offered (comma-separated)" required error={err("classesOffered")}>
+          <FormSection>
+            <div className={FORM_GRID}>
+              <Field label="Classes offered (comma-separated)" required error={err("classesOffered")} className="sm:col-span-2 xl:col-span-4">
                 <input
-                  className={inputError("classesOffered")}
+                  className={controlClass("classesOffered")}
                   name="classesOffered"
                   value={form.classesOffered}
                   onChange={onChange}
                   placeholder="Nursery, KG, 1, 2 … 12"
                 />
               </Field>
-            </div>
-            <Field label="Sections per class" required error={err("sectionsPerClass")}>
+              <Field label="Sections per class" required error={err("sectionsPerClass")}>
               <input
-                className={inputError("sectionsPerClass")}
+                className={controlClass("sectionsPerClass")}
                 name="sectionsPerClass"
                 type="number"
                 min={1}
@@ -482,36 +476,38 @@ function CreateSchoolPage() {
               />
             </Field>
             <Field label="Total capacity" required error={err("totalCapacity")}>
-              <input className={inputError("totalCapacity")} name="totalCapacity" type="number" min={1} value={form.totalCapacity} onChange={onChange} />
+              <input className={controlClass("totalCapacity")} name="totalCapacity" type="number" min={1} value={form.totalCapacity} onChange={onChange} />
             </Field>
             <Field label="Session start month" required error={err("sessionStartMonth")}>
-              <input className={inputError("sessionStartMonth")} name="sessionStartMonth" value={form.sessionStartMonth} onChange={onChange} placeholder="April" />
+              <input className={controlClass("sessionStartMonth")} name="sessionStartMonth" value={form.sessionStartMonth} onChange={onChange} placeholder="April" />
             </Field>
-            <Field label="Session end month" required error={err("sessionEndMonth")}>
-              <input className={inputError("sessionEndMonth")} name="sessionEndMonth" value={form.sessionEndMonth} onChange={onChange} placeholder="March" />
-            </Field>
-          </div>
+              <Field label="Session end month" required error={err("sessionEndMonth")}>
+                <input className={controlClass("sessionEndMonth")} name="sessionEndMonth" value={form.sessionEndMonth} onChange={onChange} placeholder="March" />
+              </Field>
+            </div>
+          </FormSection>
         );
       case 2:
         return (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2 rounded-xl border border-amber-200/80 border-l-4 border-l-amber-500 bg-gradient-to-r from-amber-50/90 via-orange-50/40 to-white px-4 py-3 text-sm leading-relaxed text-amber-950 shadow-sm">
+          <FormSection>
+            <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/80 px-4 py-3 text-sm leading-relaxed text-amber-950">
               <strong className="font-semibold text-slate-900">School administrator</strong> — this user is created as{" "}
               <code className="rounded bg-white px-1 py-0.5 text-xs font-medium text-slate-800 ring-1 ring-slate-200">SCHOOL_ADMIN</code>{" "}
               for the new tenant. Transmit credentials through a secure channel after provisioning.
             </div>
+            <div className={FORM_GRID}>
             <Field label="Admin full name" required error={err("adminName")}>
-              <input className={inputError("adminName")} name="adminName" value={form.adminName} onChange={onChange} />
+              <input className={controlClass("adminName")} name="adminName" value={form.adminName} onChange={onChange} />
             </Field>
             <Field label="Admin email" required error={err("adminEmail")}>
-              <input className={inputError("adminEmail")} name="adminEmail" type="email" value={form.adminEmail} onChange={onChange} />
+              <input className={controlClass("adminEmail")} name="adminEmail" type="email" value={form.adminEmail} onChange={onChange} />
             </Field>
             <Field label="Admin phone" required error={err("adminPhone")}>
-              <input className={inputError("adminPhone")} name="adminPhone" value={form.adminPhone} onChange={onChange} />
+              <input className={controlClass("adminPhone")} name="adminPhone" value={form.adminPhone} onChange={onChange} />
             </Field>
             <Field label="Admin password" required error={err("adminPassword")}>
               <input
-                className={inputError("adminPassword")}
+                className={controlClass("adminPassword")}
                 name="adminPassword"
                 type="password"
                 value={form.adminPassword}
@@ -519,14 +515,16 @@ function CreateSchoolPage() {
                 autoComplete="new-password"
               />
             </Field>
-          </div>
+            </div>
+          </FormSection>
         );
       case 3:
         return (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <FormSection>
+          <div className={FORM_GRID}>
             <Field label="Max teachers" required error={err("maxTeachersAllowed")}>
               <input
-                className={inputError("maxTeachersAllowed")}
+                className={controlClass("maxTeachersAllowed")}
                 name="maxTeachersAllowed"
                 type="number"
                 min={1}
@@ -535,22 +533,20 @@ function CreateSchoolPage() {
               />
             </Field>
             <Field label="Max staff" required error={err("maxStaffAllowed")}>
-              <input className={inputError("maxStaffAllowed")} name="maxStaffAllowed" type="number" min={1} value={form.maxStaffAllowed} onChange={onChange} />
+              <input className={controlClass("maxStaffAllowed")} name="maxStaffAllowed" type="number" min={1} value={form.maxStaffAllowed} onChange={onChange} />
             </Field>
-            <div className="sm:col-span-2 xl:col-span-3">
-              <Field label="Departments (comma-separated)" required error={err("departments")}>
+              <Field label="Departments (comma-separated)" required error={err("departments")} className="sm:col-span-2 xl:col-span-4">
                 <input
-                  className={inputError("departments")}
+                  className={controlClass("departments")}
                   name="departments"
                   value={form.departments}
                   onChange={onChange}
                   placeholder="Science, Commerce, Arts"
                 />
               </Field>
-            </div>
             <Field label="Max students" required error={err("maxStudentsAllowed")}>
               <input
-                className={inputError("maxStudentsAllowed")}
+                className={controlClass("maxStudentsAllowed")}
                 name="maxStudentsAllowed"
                 type="number"
                 min={1}
@@ -559,11 +555,11 @@ function CreateSchoolPage() {
               />
             </Field>
             <Field label="Admission prefix" required error={err("admissionPrefix")}>
-              <input className={inputError("admissionPrefix")} name="admissionPrefix" value={form.admissionPrefix} onChange={onChange} placeholder="ADM" />
+              <input className={controlClass("admissionPrefix")} name="admissionPrefix" value={form.admissionPrefix} onChange={onChange} placeholder="ADM" />
             </Field>
             <Field label="Roll number format" required error={err("rollNumberFormat")}>
               <input
-                className={inputError("rollNumberFormat")}
+                className={controlClass("rollNumberFormat")}
                 name="rollNumberFormat"
                 value={form.rollNumberFormat}
                 onChange={onChange}
@@ -571,38 +567,40 @@ function CreateSchoolPage() {
               />
             </Field>
           </div>
+          </FormSection>
         );
       case 4:
         return (
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <FormSection>
+            <div className="space-y-4">
+            <div className={FORM_GRID}>
               <Field label="Plan type" required error={err("planType")}>
-                <select className={inputError("planType")} name="planType" value={form.planType} onChange={onChange}>
+                <select className={controlClass("planType")} name="planType" value={form.planType} onChange={onChange}>
                   <option>Free</option>
                   <option>Basic</option>
                   <option>Premium</option>
                 </select>
               </Field>
               <Field label="Plan price" required error={err("planPrice")}>
-                <input className={inputError("planPrice")} name="planPrice" type="number" step="0.01" min={0} value={form.planPrice} onChange={onChange} />
+                <input className={controlClass("planPrice")} name="planPrice" type="number" step="0.01" min={0} value={form.planPrice} onChange={onChange} />
               </Field>
               <Field label="Billing cycle" required error={err("billingCycle")}>
-                <select className={inputError("billingCycle")} name="billingCycle" value={form.billingCycle} onChange={onChange}>
+                <select className={controlClass("billingCycle")} name="billingCycle" value={form.billingCycle} onChange={onChange}>
                   <option>Monthly</option>
                   <option>Yearly</option>
                 </select>
               </Field>
               <Field label="Start date" required error={err("startDate")}>
-                <input className={inputError("startDate")} name="startDate" type="date" value={form.startDate} onChange={onChange} />
+                <input className={controlClass("startDate")} name="startDate" type="date" value={form.startDate} onChange={onChange} />
               </Field>
               <Field label="End date" required error={err("endDate")}>
-                <input className={inputError("endDate")} name="endDate" type="date" value={form.endDate} onChange={onChange} />
+                <input className={controlClass("endDate")} name="endDate" type="date" value={form.endDate} onChange={onChange} />
               </Field>
               <Field label="Trial days" required error={err("trialDays")}>
-                <input className={inputError("trialDays")} name="trialDays" type="number" min={0} value={form.trialDays} onChange={onChange} />
+                <input className={controlClass("trialDays")} name="trialDays" type="number" min={0} value={form.trialDays} onChange={onChange} />
               </Field>
               <Field label="Currency" required error={err("currency")}>
-                <select className={inputError("currency")} name="currency" value={form.currency} onChange={onChange}>
+                <select className={controlClass("currency")} name="currency" value={form.currency} onChange={onChange}>
                   <option>INR</option>
                   <option>USD</option>
                 </select>
@@ -628,25 +626,26 @@ function CreateSchoolPage() {
               </label>
             </div>
           </div>
+          </FormSection>
         );
       case 5:
         return (
           <div className="space-y-8">
             <div>
               <SubsectionTitle>Branding</SubsectionTitle>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className={FORM_GRID}>
                 <Field label="Logo URL" error={err("schoolLogo")}>
-                  <input className={inputError("schoolLogo")} name="schoolLogo" value={form.schoolLogo} onChange={onChange} />
+                  <input className={controlClass("schoolLogo")} name="schoolLogo" value={form.schoolLogo} onChange={onChange} />
                 </Field>
                 <Field label="Favicon URL" error={err("favicon")}>
-                  <input className={inputError("favicon")} name="favicon" value={form.favicon} onChange={onChange} />
+                  <input className={controlClass("favicon")} name="favicon" value={form.favicon} onChange={onChange} />
                 </Field>
                 <Field label="Primary color" required error={err("primaryColor")}>
-                  <input className={`${inputError("primaryColor")} h-11 cursor-pointer p-1`} name="primaryColor" type="color" value={form.primaryColor} onChange={onChange} />
+                  <input className={`${controlClass("primaryColor")} ${INPUT_H} cursor-pointer p-1`} name="primaryColor" type="color" value={form.primaryColor} onChange={onChange} />
                 </Field>
                 <Field label="Secondary color" required error={err("secondaryColor")}>
                   <input
-                    className={`${inputError("secondaryColor")} h-11 cursor-pointer p-1`}
+                    className={`${controlClass("secondaryColor")} ${INPUT_H} cursor-pointer p-1`}
                     name="secondaryColor"
                     type="color"
                     value={form.secondaryColor}
@@ -707,7 +706,7 @@ function CreateSchoolPage() {
               </div>
               <div className="mt-3">
                 <Field label="Allowed IPs (comma-separated)" error={err("allowedIPs")}>
-                  <input className={inputError("allowedIPs")} name="allowedIPs" value={form.allowedIPs} onChange={onChange} placeholder="Optional" />
+                  <input className={controlClass("allowedIPs")} name="allowedIPs" value={form.allowedIPs} onChange={onChange} placeholder="Optional" />
                 </Field>
               </div>
             </div>
@@ -732,30 +731,30 @@ function CreateSchoolPage() {
               <SubsectionTitle>Compliance documents (optional)</SubsectionTitle>
               <div className="grid gap-4 sm:grid-cols-1">
                 <Field label="Registration certificate URL" error={err("registrationCertificate")}>
-                  <input className={inputError("registrationCertificate")} name="registrationCertificate" value={form.registrationCertificate} onChange={onChange} />
+                  <input className={controlClass("registrationCertificate")} name="registrationCertificate" value={form.registrationCertificate} onChange={onChange} />
                 </Field>
                 <Field label="Affiliation proof URL" error={err("affiliationProof")}>
-                  <input className={inputError("affiliationProof")} name="affiliationProof" value={form.affiliationProof} onChange={onChange} />
+                  <input className={controlClass("affiliationProof")} name="affiliationProof" value={form.affiliationProof} onChange={onChange} />
                 </Field>
                 <Field label="Other documents (comma-separated URLs)" error={err("otherDocuments")}>
-                  <input className={inputError("otherDocuments")} name="otherDocuments" value={form.otherDocuments} onChange={onChange} />
+                  <input className={controlClass("otherDocuments")} name="otherDocuments" value={form.otherDocuments} onChange={onChange} />
                 </Field>
               </div>
             </div>
             <div>
               <SubsectionTitle>Locale & formats</SubsectionTitle>
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <div className={FORM_GRID}>
                 <Field label="Timezone" required error={err("timezone")}>
-                  <input className={inputError("timezone")} name="timezone" value={form.timezone} onChange={onChange} />
+                  <input className={controlClass("timezone")} name="timezone" value={form.timezone} onChange={onChange} />
                 </Field>
                 <Field label="Language" required error={err("language")}>
-                  <input className={inputError("language")} name="language" value={form.language} onChange={onChange} />
+                  <input className={controlClass("language")} name="language" value={form.language} onChange={onChange} />
                 </Field>
                 <Field label="Date format" required error={err("dateFormat")}>
-                  <input className={inputError("dateFormat")} name="dateFormat" value={form.dateFormat} onChange={onChange} />
+                  <input className={controlClass("dateFormat")} name="dateFormat" value={form.dateFormat} onChange={onChange} />
                 </Field>
                 <Field label="Time format" required error={err("timeFormat")}>
-                  <select className={inputError("timeFormat")} name="timeFormat" value={form.timeFormat} onChange={onChange}>
+                  <select className={controlClass("timeFormat")} name="timeFormat" value={form.timeFormat} onChange={onChange}>
                     <option value="24h">24h</option>
                     <option value="12h">12h</option>
                   </select>
@@ -782,61 +781,64 @@ function CreateSchoolPage() {
         aria-hidden
       />
 
-      <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-violet-900 to-brand-900 px-6 py-8 text-white shadow-xl shadow-indigo-950/25 sm:px-10 sm:py-10">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-fuchsia-500/25 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl" aria-hidden />
-        <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+      <header className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-600 via-indigo-600 to-cyan-500" aria-hidden />
+        <div className="relative px-6 py-7 sm:px-8 sm:py-8">
+          <Link
+            to="/super-admin/schools"
+            className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand-600"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            Back to schools
+          </Link>
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-cyan-100/95">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" aria-hidden />
+            <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-800">
+              <Sparkles className="h-3.5 w-3.5 text-brand-600" aria-hidden />
               Tenant provisioning
             </p>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-              Create{" "}
-              <span className="bg-gradient-to-r from-white via-fuchsia-100 to-cyan-200 bg-clip-text text-transparent">school</span>{" "}
-              workspace
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
-              Same full-width rhythm as your super admin dashboard—use the{" "}
-              <span className="font-semibold text-white">left workflow rail</span> to jump between sections (unlocked as you
-              progress). Fields marked <span className="text-rose-300">*</span> are required by the API.
+            <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Create school workspace</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+              Use the workflow steps to provision a new tenant. Fields marked{" "}
+              <span className="font-semibold text-rose-600">*</span> are required by the API.
             </p>
           </div>
           <div className="flex flex-wrap items-stretch gap-4 lg:flex-col lg:items-stretch">
-            <div className="min-w-[140px] flex-1 rounded-xl border border-white/20 bg-white/10 px-5 py-4 text-center backdrop-blur-md lg:flex-initial">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Completion</p>
-              <p className="mt-1 text-3xl font-black tabular-nums">{progressPercent}%</p>
+            <div className="min-w-[130px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center lg:flex-initial">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Completion</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{progressPercent}%</p>
             </div>
-            <div className="min-w-[140px] flex-1 rounded-xl border border-white/20 bg-white/10 px-5 py-4 text-center backdrop-blur-md lg:flex-initial">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/70">Active step</p>
-              <p className="mt-1 text-lg font-bold tabular-nums">
+            <div className="min-w-[130px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center lg:flex-initial">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active step</p>
+              <p className="mt-1 text-lg font-bold tabular-nums text-slate-900">
                 {step + 1}
-                <span className="text-white/50"> / </span>
+                <span className="text-slate-400"> / </span>
                 {STEPS.length}
               </p>
             </div>
           </div>
-        </div>
-        <div className="relative mt-8">
-          <div className="mb-2 flex justify-between text-xs font-medium text-white/70">
-            <span>Overall progress</span>
-            <span className="tabular-nums">{progressPercent}%</span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-black/30">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-300 transition-[width] duration-500 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <div className="mb-2 flex justify-between text-xs font-medium text-slate-500">
+              <span>Overall progress</span>
+              <span className="tabular-nums">{progressPercent}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-brand-600 transition-[width] duration-500 ease-out"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
         </div>
       </header>
 
       <div className="relative grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
         <aside className="order-2 lg:order-1 lg:col-span-4 xl:col-span-3" aria-label="Workflow steps">
-          <div className="overflow-hidden rounded-2xl border border-violet-200/60 bg-gradient-to-b from-violet-100/40 via-white to-cyan-50/30 p-[1px] shadow-lg shadow-violet-500/10">
-            <div className="rounded-[0.9rem] bg-white/95 p-4 backdrop-blur-sm sm:p-5 lg:sticky lg:top-20">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+            <div className="p-4 sm:p-5 lg:sticky lg:top-20">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-md">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
                   <ListOrdered className="h-4 w-4" strokeWidth={2} aria-hidden />
                 </span>
                 <div>
@@ -850,7 +852,7 @@ function CreateSchoolPage() {
                   const completed = i < step;
                   const active = i === step;
                   const locked = i > maxReached;
-                  const railClass = active ? s.railActive : completed ? s.railDone : locked ? `${s.railIdle} opacity-45` : s.railIdle;
+                  const railClass = railStepClass({ active, completed, locked });
                   return (
                     <li key={s.id}>
                       <button
@@ -860,7 +862,9 @@ function CreateSchoolPage() {
                         className={`flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition ${railClass}`}
                       >
                         <span
-                          className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${s.chip} text-white shadow-md`}
+                          className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm ${
+                            active ? "bg-brand-600 text-white" : completed ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
+                          }`}
                         >
                           {completed ? <Check className="h-5 w-5" strokeWidth={2.5} aria-hidden /> : <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />}
                         </span>
@@ -888,16 +892,15 @@ function CreateSchoolPage() {
         <div className="order-1 min-w-0 lg:order-2 lg:col-span-8 xl:col-span-9">
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-indigo-900/[0.08] ring-1 ring-slate-100/80">
-              <div className={`relative overflow-hidden bg-gradient-to-r ${stepMeta.bar} px-6 py-6 text-white sm:px-8 sm:py-7`}>
-                <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" aria-hidden />
-                <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 shadow-inner ring-1 ring-white/30 backdrop-blur-sm">
-                    <StepIcon className="h-7 w-7" strokeWidth={1.75} aria-hidden />
+              <div className={`border-b border-slate-100 bg-slate-50/90 px-6 py-5 sm:px-8 sm:py-6`}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
+                    <StepIcon className="h-6 w-6" strokeWidth={1.75} aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold uppercase tracking-widest text-white/80">Section {step + 1} of {STEPS.length}</p>
-                    <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-2xl">{stepMeta.title}</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/90">{stepMeta.subtitle}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Section {step + 1} of {STEPS.length}</p>
+                    <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{stepMeta.title}</h2>
+                    <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">{stepMeta.subtitle}</p>
                   </div>
                 </div>
               </div>
@@ -920,7 +923,7 @@ function CreateSchoolPage() {
                     type="button"
                     onClick={goBack}
                     disabled={step === 0}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`inline-flex ${INPUT_H} items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40`}
                   >
                     <ArrowLeft className="h-4 w-4" aria-hidden />
                     Back
@@ -929,7 +932,7 @@ function CreateSchoolPage() {
                     <button
                       type="button"
                       onClick={goNext}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-brand-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-600/25 transition hover:from-violet-700 hover:to-brand-700"
+                      className={`inline-flex ${INPUT_H} items-center gap-2 rounded-xl bg-brand-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700`}
                     >
                       Continue
                       <ArrowRight className="h-4 w-4" aria-hidden />
@@ -938,7 +941,7 @@ function CreateSchoolPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/30 transition hover:from-emerald-700 hover:to-teal-700 disabled:opacity-60"
+                      className={`inline-flex ${INPUT_H} items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60`}
                     >
                       {loading ? "Creating…" : "Create school"}
                       <Check className="h-4 w-4" aria-hidden />

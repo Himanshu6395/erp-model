@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { Ban, Filter, MapPin, ShieldAlert, Sparkles } from "lucide-react";
+import { Ban, MapPin, ShieldAlert, Sparkles } from "lucide-react";
 import Loader from "../../components/Loader";
+import FilterField from "../../components/superAdmin/FilterField";
+import SuperAdminFilterMenu from "../../components/superAdmin/SuperAdminFilterMenu";
 import { superAdminOpsService } from "../../services/superAdminOpsService";
+import { SA_INPUT_WITH_H, countActiveFilters } from "./superAdminUi";
 
 function BlockedSchoolsPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterSearch, setFilterSearch] = useState("");
+  const [draft, setDraft] = useState({ search: "" });
 
   const load = async () => {
     setLoading(true);
@@ -24,6 +28,14 @@ function BlockedSchoolsPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const filterBadgeCount = countActiveFilters({ search: filterSearch });
+  const syncDraft = () => setDraft({ search: filterSearch });
+  const applyFilters = () => setFilterSearch(draft.search);
+  const clearFilters = () => {
+    setDraft({ search: "" });
+    setFilterSearch("");
+  };
 
   const filtered = useMemo(() => {
     const q = filterSearch.trim().toLowerCase();
@@ -83,28 +95,15 @@ function BlockedSchoolsPage() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-900/[0.06] ring-1 ring-slate-100/90">
-        <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-5 sm:px-6">
-          <div className="flex items-center gap-2 text-slate-800">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-violet-600 text-white shadow-sm">
-              <Filter className="h-4 w-4" aria-hidden />
-            </span>
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Filter list</h2>
-              <p className="text-xs text-slate-500">Client-side search on this page</p>
-            </div>
-          </div>
-          <div className="mt-4 max-w-md">
-            <label className="mb-1.5 block text-xs font-semibold text-slate-600">Search</label>
-            <input
-              className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
-              placeholder="School name, code, or city…"
-              value={filterSearch}
-              onChange={(e) => setFilterSearch(e.target.value)}
-            />
-          </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Showing <span className="font-semibold text-slate-700">{filtered.length}</span> of {rows.length} blocked schools.
+        <div className="flex flex-col gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <p className="text-sm text-slate-600">
+            Showing <span className="font-semibold text-slate-900">{filtered.length}</span> of {rows.length} blocked schools
           </p>
+          <SuperAdminFilterMenu activeCount={filterBadgeCount} onOpen={syncDraft} onApply={applyFilters} onClear={clearFilters}>
+            <FilterField label="Search">
+              <input className={SA_INPUT_WITH_H} placeholder="School name, code, or city…" value={draft.search} onChange={(e) => setDraft({ search: e.target.value })} />
+            </FilterField>
+          </SuperAdminFilterMenu>
         </div>
 
         <div className="overflow-x-auto">

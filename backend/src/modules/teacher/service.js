@@ -1,8 +1,17 @@
 import AppError from "../../common/errors/AppError.js";
 import { ROLES } from "../../common/constants/roles.js";
+import { TEACHER_LEAVE_TYPES } from "../../models/TeacherLeave.js";
 import { teacherRepository } from "./repository.js";
 import { noticeRepository } from "../notices/notice.repository.js";
 import { MATERIAL_TYPES } from "../../models/StudyMaterial.js";
+import { adminRepository } from "../admin/repository.js";
+import { inclusiveDayCount, formatTeacherLeaveRow } from "../teacherLeave/teacherLeave.utils.js";
+import {
+  buildProfileUpdatePayload,
+  formatTeacherProfileDto,
+  profileCompletionPercent,
+  toStoredProfileUrl,
+} from "./teacherProfile.utils.js";
 
 const ensureTeacherRole = (user) => {
   if (!user?.schoolId) throw new AppError("School context missing", 400);
@@ -977,29 +986,179 @@ const studentPerformanceInsights = async (user) => {
   };
 };
 
-const applyLeave = async (user, payload) => {
+const leaveTypeSet = new Set(TEACHER_LEAVE_TYPES);
+
+const parseLeaveDates = (body) => {
+  const fromRaw = body.fromDate || body.startDate;
+  const toRaw = body.toDate || body.endDate;
+  const fromDate = toDate(fromRaw);
+  const toDateVal = toDate(toRaw);
+  if (!fromDate || !toDateVal) throw new AppError("Invalid dates", 400);
+  fromDate.setHours(0, 0, 0, 0);
+  toDateVal.setHours(0, 0, 0, 0);
+  if (toDateVal < fromDate) throw new AppError("End date cannot be before start date", 400);
+  const totalDays = inclusiveDayCount(fromDate, toDateVal);
+  if (totalDays < 1) throw new AppError("Invalid leave duration", 400);
+  return { fromDate, toDate: toDateVal, totalDays };
+};
+
+const notifySchoolAdminsTeacherLeave = async (schoolId, message, title = "New teacher leave request") => {
+  const admins = await adminRepository.findSchoolAdminUsers(schoolId);
+  await Promise.all(
+    (admins || []).map((admin) =>
+      teacherRepository.createNotification({
+        schoolId,
+        userId: admin._id,
+        title,
+        message,
+        type: "TEACHER_LEAVE",
+      })
+    )
+  );
+};
+
+const applyLeave = async (user, body, file) => {
   const { schoolId, teacher } = await getTeacherContext(user);
-  return teacherRepository.createLeave({
+  const leaveType = String(body.leaveType || "").toUpperCase();
+  if (!leaveTypeSet.has(leaveType)) throw new AppError("Invalid leave type", 400);
+  const { fromDate, toDate: endDate, totalDays } = parseLeaveDates(body);
+  const reason = String(body.reason || "").trim();
+  if (!reason) throw new AppError("Reason is required", 400);
+  const emergencyContact = String(body.emergencyContact || "").trim();
+  if (!emergencyContact) throw new AppError("Emergency contact is required", 400);
+  const attachmentUrl = file ? `/uploads/teacher-leaves/${file.filename}` : "";
+
+  const created = await teacherRepository.createLeave({
     schoolId,
     teacherId: teacher._id,
-    leaveType: payload.leaveType,
-    startDate: new Date(payload.startDate),
-    endDate: new Date(payload.endDate),
-    reason: payload.reason || "",
+    leaveType,
+    fromDate,
+    toDate: endDate,
+    startDate: fromDate,
+    endDate,
+    totalDays,
+    reason,
+    emergencyContact,
+    attachmentUrl,
     status: "PENDING",
   });
+
+  const teacherName = teacher.userId?.name || "A teacher";
+  await notifySchoolAdminsTeacherLeave(
+    schoolId,
+    `${teacherName} applied for ${leaveType} leave (${totalDays} day(s)) from ${fromDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}. Review under Teacher Leave Requests.`,
+    "New teacher leave request"
+  );
+
+  const row = await teacherRepository.findLeaveById({ schoolId, teacherId: teacher._id, leaveId: created._id });
+  return formatTeacherLeaveRow(row || created);
+};
+
+const updateLeave = async (user, leaveId, body, file) => {
+  const { schoolId, teacher } = await getTeacherContext(user);
+  const existing = await teacherRepository.findLeaveById({ schoolId, teacherId: teacher._id, leaveId });
+  if (!existing) throw new AppError("Leave request not found", 404);
+  if (existing.status !== "PENDING") throw new AppError("Only pending requests can be edited", 400);
+
+  const leaveType = String(body.leaveType || existing.leaveType).toUpperCase();
+  if (!leaveTypeSet.has(leaveType)) throw new AppError("Invalid leave type", 400);
+  const { fromDate, toDate: endDate, totalDays } = parseLeaveDates({
+    fromDate: body.fromDate || body.startDate || existing.fromDate || existing.startDate,
+    toDate: body.toDate || body.endDate || existing.toDate || existing.endDate,
+  });
+  const reason = String(body.reason ?? existing.reason ?? "").trim();
+  if (!reason) throw new AppError("Reason is required", 400);
+  const emergencyContact = String(body.emergencyContact ?? existing.emergencyContact ?? "").trim();
+  if (!emergencyContact) throw new AppError("Emergency contact is required", 400);
+
+  const payload = {
+    leaveType,
+    fromDate,
+    toDate: endDate,
+    startDate: fromDate,
+    endDate,
+    totalDays,
+    reason,
+    emergencyContact,
+  };
+  if (file) payload.attachmentUrl = `/uploads/teacher-leaves/${file.filename}`;
+
+  const updated = await teacherRepository.updateLeavePending({
+    schoolId,
+    teacherId: teacher._id,
+    leaveId,
+    payload,
+  });
+  if (!updated) throw new AppError("Leave request not found or not editable", 404);
+  return formatTeacherLeaveRow(updated);
+};
+
+const deleteLeave = async (user, leaveId) => {
+  const { schoolId, teacher } = await getTeacherContext(user);
+  const deleted = await teacherRepository.deleteLeavePending({ schoolId, teacherId: teacher._id, leaveId });
+  if (!deleted) throw new AppError("Leave request not found or cannot be deleted", 404);
+  return { deleted: true };
 };
 
 const cancelLeave = async (user, leaveId) => {
   const { schoolId, teacher } = await getTeacherContext(user);
   const updated = await teacherRepository.cancelLeave({ schoolId, teacherId: teacher._id, leaveId });
-  if (!updated) throw new AppError("Leave request not found", 404);
-  return updated;
+  if (!updated) throw new AppError("Leave request not found or cannot be cancelled", 404);
+  return formatTeacherLeaveRow(updated);
 };
 
-const listLeaves = async (user) => {
+const listLeaves = async (user, query = {}) => {
   const { schoolId, teacher } = await getTeacherContext(user);
-  return teacherRepository.listLeaves({ schoolId, teacherId: teacher._id });
+  const filter = {};
+  if (query.status && ["PENDING", "APPROVED", "REJECTED", "CANCELLED"].includes(String(query.status))) {
+    filter.status = query.status;
+  }
+  if (query.leaveType && leaveTypeSet.has(String(query.leaveType).toUpperCase())) {
+    filter.leaveType = String(query.leaveType).toUpperCase();
+  }
+  if (query.from || query.to) {
+    const fromD = query.from ? new Date(query.from) : new Date("1970-01-01");
+    const toD = query.to ? new Date(query.to) : new Date("9999-12-31");
+    fromD.setHours(0, 0, 0, 0);
+    toD.setHours(23, 59, 59, 999);
+    filter.fromDate = { $lte: toD };
+    filter.toDate = { $gte: fromD };
+  }
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100);
+  const skip = (page - 1) * limit;
+  const [rows, total] = await Promise.all([
+    teacherRepository.listLeaves({ schoolId, teacherId: teacher._id, filter, skip, limit }),
+    teacherRepository.countLeaves({ schoolId, teacherId: teacher._id, filter }),
+  ]);
+  let items = rows.map(formatTeacherLeaveRow);
+  const search = String(query.search || "").trim().toLowerCase();
+  if (search) {
+    items = items.filter(
+      (r) =>
+        String(r.reason || "").toLowerCase().includes(search) ||
+        String(r.leaveType || "").toLowerCase().includes(search) ||
+        String(r.leaveDisplayId || "").toLowerCase().includes(search)
+    );
+  }
+  return { items, page, limit, total, totalPages: Math.ceil(total / limit) || 1 };
+};
+
+const getLeaveStats = async (user) => {
+  const { schoolId, teacher } = await getTeacherContext(user);
+  return teacherRepository.aggregateTeacherLeaveStats({ schoolId, teacherId: teacher._id });
+};
+
+const getLeaveById = async (user, leaveId) => {
+  const { schoolId, teacher } = await getTeacherContext(user);
+  const row = await teacherRepository.findLeaveById({ schoolId, teacherId: teacher._id, leaveId });
+  if (!row) throw new AppError("Leave request not found", 404);
+  return formatTeacherLeaveRow(row);
+};
+
+const getUnreadNotificationCount = async (user) => {
+  const schoolId = ensureTeacherRole(user);
+  return { count: await teacherRepository.countUnreadNotifications({ schoolId, userId: user.userId }) };
 };
 
 const listStudentLeavesForClassTeacher = async (user, query) => {
@@ -1143,32 +1302,136 @@ const markNotificationRead = async (user, notificationId) => {
   return updated;
 };
 
-const updateProfile = async (user, payload) => {
+const getProfileSettings = async (user) => {
   const { schoolId, teacher } = await getTeacherContext(user);
-  await teacherRepository.updateUserById({
-    userId: teacher.userId?._id || user.userId,
-    payload: {
-      ...(payload.name ? { name: payload.name } : {}),
-      ...(payload.email ? { email: payload.email } : {}),
-      ...(payload.phone ? { phone: payload.phone } : {}),
-    },
-  });
+  const assignedClasses = await listAssignedClassesWithSubjects(user);
+  const dto = formatTeacherProfileDto(teacher, { assignedClasses });
+  return {
+    ...dto,
+    completionPercent: profileCompletionPercent(dto),
+  };
+};
+
+const updateProfile = async (user, body, files = {}) => {
+  const { schoolId, teacher } = await getTeacherContext(user);
+  const parsed = buildProfileUpdatePayload(body, files);
+  const userId = teacher.userId?._id || user.userId;
+
+  if (parsed.user.name || parsed.user.email || parsed.user.phone) {
+    await teacherRepository.updateUserById({ userId, payload: parsed.user });
+  }
+
+  const teacherPayload = { ...parsed.teacher };
+  if (Object.keys(parsed.socialLinks).length) {
+    teacherPayload.socialLinks = {
+      ...(teacher.socialLinks?.toObject?.() || teacher.socialLinks || {}),
+      ...parsed.socialLinks,
+    };
+  }
+  if (parsed.removeProfileImage) teacherPayload.profileImage = "";
+  if (parsed.removeCoverImage) teacherPayload.coverImage = "";
+
+  if (!Object.keys(teacherPayload).length && !parsed.removeProfileImage && !parsed.removeCoverImage) {
+    const assignedClasses = await listAssignedClassesWithSubjects(user);
+    const dto = formatTeacherProfileDto(teacher, { assignedClasses });
+    return { ...dto, completionPercent: profileCompletionPercent(dto) };
+  }
+
   const updatedTeacher = await teacherRepository.updateTeacherById({
     schoolId,
     teacherId: teacher._id,
-    payload: {
-      ...(payload.phone ? { phone: payload.phone } : {}),
-      ...(payload.profileImage ? { profileImage: payload.profileImage } : {}),
-    },
+    payload: teacherPayload,
   });
-  return updatedTeacher;
+  const assignedClasses = await listAssignedClassesWithSubjects(user);
+  const dto = formatTeacherProfileDto(updatedTeacher, { assignedClasses });
+  return { ...dto, completionPercent: profileCompletionPercent(dto) };
+};
+
+const uploadProfilePhoto = async (user, file) => {
+  if (!file) throw new AppError("Profile image file is required", 400);
+  const { schoolId, teacher } = await getTeacherContext(user);
+  const profileImage = toStoredProfileUrl(file);
+  const updatedTeacher = await teacherRepository.updateTeacherById({
+    schoolId,
+    teacherId: teacher._id,
+    payload: { profileImage },
+  });
+  const assignedClasses = await listAssignedClassesWithSubjects(user);
+  const dto = formatTeacherProfileDto(updatedTeacher, { assignedClasses });
+  return { ...dto, completionPercent: profileCompletionPercent(dto) };
+};
+
+const getSecurityInfo = async (user) => {
+  const foundUser = await teacherRepository.findUserById(user.userId);
+  if (!foundUser) throw new AppError("User not found", 404);
+  return {
+    lastLogin: foundUser.updatedAt,
+    accountCreated: foundUser.createdAt,
+    email: foundUser.email,
+    devices: [
+      {
+        id: "current",
+        label: "Current browser session",
+        location: "Active now",
+        lastActive: new Date().toISOString(),
+        current: true,
+      },
+    ],
+  };
+};
+
+const updatePreferences = async (user, payload) => {
+  const { schoolId, teacher } = await getTeacherContext(user);
+  const settings = {
+    ...(teacher.settings?.toObject?.() || teacher.settings || {}),
+    ...(payload.theme !== undefined ? { theme: payload.theme } : {}),
+    ...(payload.language !== undefined ? { language: payload.language } : {}),
+    ...(payload.sidebarMode !== undefined ? { sidebarMode: payload.sidebarMode } : {}),
+    ...(payload.notificationSound !== undefined ? { notificationSound: Boolean(payload.notificationSound) } : {}),
+    ...(payload.darkMode !== undefined ? { darkMode: Boolean(payload.darkMode) } : {}),
+    ...(payload.fontSize !== undefined ? { fontSize: payload.fontSize } : {}),
+    ...(payload.compactMode !== undefined ? { compactMode: Boolean(payload.compactMode) } : {}),
+    ...(payload.animationsEnabled !== undefined ? { animationsEnabled: Boolean(payload.animationsEnabled) } : {}),
+  };
+  const updated = await teacherRepository.updateTeacherById({
+    schoolId,
+    teacherId: teacher._id,
+    payload: { settings },
+  });
+  return formatTeacherProfileDto(updated).preferences;
+};
+
+const updateNotificationPrefs = async (user, payload) => {
+  const { schoolId, teacher } = await getTeacherContext(user);
+  const notificationPrefs = {
+    ...(teacher.notificationPrefs?.toObject?.() || teacher.notificationPrefs || {}),
+    ...(payload.email !== undefined ? { email: Boolean(payload.email) } : {}),
+    ...(payload.sms !== undefined ? { sms: Boolean(payload.sms) } : {}),
+    ...(payload.leaveApproval !== undefined ? { leaveApproval: Boolean(payload.leaveApproval) } : {}),
+    ...(payload.announcements !== undefined ? { announcements: Boolean(payload.announcements) } : {}),
+    ...(payload.attendance !== undefined ? { attendance: Boolean(payload.attendance) } : {}),
+    ...(payload.leaveAlerts !== undefined ? { leaveAlerts: Boolean(payload.leaveAlerts) } : {}),
+    ...(payload.examAlerts !== undefined ? { examAlerts: Boolean(payload.examAlerts) } : {}),
+  };
+  const updated = await teacherRepository.updateTeacherById({
+    schoolId,
+    teacherId: teacher._id,
+    payload: { notificationPrefs },
+  });
+  return formatTeacherProfileDto(updated).notificationPrefs;
 };
 
 const changePassword = async (user, payload) => {
   const foundUser = await teacherRepository.findUserById(user.userId);
   if (!foundUser) throw new AppError("User not found", 404);
+  if (payload.confirmPassword && payload.newPassword !== payload.confirmPassword) {
+    throw new AppError("New password and confirmation do not match", 400);
+  }
   const ok = await foundUser.comparePassword(payload.currentPassword || "");
   if (!ok) throw new AppError("Current password is incorrect", 400);
+  if (!payload.newPassword || String(payload.newPassword).length < 6) {
+    throw new AppError("New password must be at least 6 characters", 400);
+  }
   foundUser.password = payload.newPassword;
   await foundUser.save();
   return { changed: true };
@@ -1229,8 +1492,13 @@ export const teacherService = {
   listAssignedClassesWithSubjects,
   studentPerformanceInsights,
   applyLeave,
+  updateLeave,
+  deleteLeave,
   cancelLeave,
   listLeaves,
+  getLeaveStats,
+  getLeaveById,
+  getUnreadNotificationCount,
   listStudentLeavesForClassTeacher,
   getStudentLeaveStatsForClassTeacher,
   decideStudentLeave,
@@ -1242,7 +1510,12 @@ export const teacherService = {
   answerDoubt,
   listNotifications,
   markNotificationRead,
+  getProfileSettings,
   updateProfile,
+  uploadProfilePhoto,
+  getSecurityInfo,
+  updatePreferences,
+  updateNotificationPrefs,
   changePassword,
   salaryAndPayslip,
   activityLogs,

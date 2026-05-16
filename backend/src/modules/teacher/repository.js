@@ -183,9 +183,53 @@ export const teacherRepository = {
     Subject.findOne({ _id: subjectId, schoolId, classId }).lean(),
 
   createLeave: (payload) => TeacherLeave.create(payload),
-  listLeaves: ({ schoolId, teacherId }) => TeacherLeave.find({ schoolId, teacherId }).sort({ createdAt: -1 }),
+  findLeaveById: ({ schoolId, teacherId, leaveId }) => {
+    const q = { _id: leaveId, schoolId };
+    if (teacherId) q.teacherId = teacherId;
+    return TeacherLeave.findOne(q).populate({
+      path: "teacherId",
+      populate: [{ path: "userId" }, { path: "subjects" }],
+    });
+  },
+  listLeaves: ({ schoolId, teacherId, filter = {}, skip = 0, limit = 50 }) =>
+    TeacherLeave.find({ schoolId, teacherId, ...filter })
+      .populate({ path: "teacherId", populate: [{ path: "userId" }, { path: "subjects" }] })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+  countLeaves: ({ schoolId, teacherId, filter = {} }) =>
+    TeacherLeave.countDocuments({ schoolId, teacherId, ...filter }),
+  updateLeavePending: ({ schoolId, teacherId, leaveId, payload }) =>
+    TeacherLeave.findOneAndUpdate(
+      { _id: leaveId, schoolId, teacherId, status: "PENDING" },
+      payload,
+      { new: true }
+    ).populate({ path: "teacherId", populate: [{ path: "userId" }, { path: "subjects" }] }),
+  deleteLeavePending: ({ schoolId, teacherId, leaveId }) =>
+    TeacherLeave.findOneAndDelete({ _id: leaveId, schoolId, teacherId, status: "PENDING" }),
   cancelLeave: ({ schoolId, teacherId, leaveId }) =>
-    TeacherLeave.findOneAndUpdate({ schoolId, teacherId, _id: leaveId }, { status: "CANCELLED" }, { new: true }),
+    TeacherLeave.findOneAndUpdate(
+      { schoolId, teacherId, _id: leaveId, status: "PENDING" },
+      { status: "CANCELLED" },
+      { new: true }
+    ),
+  aggregateTeacherLeaveStats: async ({ schoolId, teacherId }) => {
+    const sid = new mongoose.Types.ObjectId(String(schoolId));
+    const tid = new mongoose.Types.ObjectId(String(teacherId));
+    const rows = await TeacherLeave.aggregate([
+      { $match: { schoolId: sid, teacherId: tid } },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ]);
+    const map = { PENDING: 0, APPROVED: 0, REJECTED: 0, CANCELLED: 0 };
+    let total = 0;
+    rows.forEach((r) => {
+      if (r._id && map[r._id] !== undefined) map[r._id] = r.count;
+      total += r.count;
+    });
+    return { total, ...map };
+  },
+  countUnreadNotifications: ({ schoolId, userId }) =>
+    Notification.countDocuments({ schoolId, userId, isRead: false }),
 
   createDiary: (payload) => TeacherDiary.create(payload),
   listDiaries: ({ schoolId, teacherId }) => TeacherDiary.find({ schoolId, teacherId }).populate("classId").sort({ date: -1 }),

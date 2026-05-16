@@ -23,6 +23,7 @@ import {
 import Loader from "../../components/Loader";
 import StatCard from "../../components/StatCard";
 import { superAdminService } from "../../services/superAdminService";
+import { usePlatformSettings } from "../../hooks/usePlatformSettings";
 import { superAdminOpsService } from "../../services/superAdminOpsService";
 
 function SectionShell({ icon: Icon, title, subtitle, accent, children }) {
@@ -172,6 +173,7 @@ const QUICK_ACTIONS = [
 ];
 
 function SuperAdminDashboard() {
+  const { formatCurrency, formatDateTime } = usePlatformSettings();
   const [loading, setLoading] = useState(true);
   const [schools, setSchools] = useState([]);
   const [schoolTotal, setSchoolTotal] = useState(0);
@@ -349,7 +351,7 @@ function SuperAdminDashboard() {
           icon={<Wallet className="h-5 w-5" strokeWidth={1.75} />}
           title="Recorded payments"
           value={metrics.paidCount}
-          subtitle={`₹${metrics.paidTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })} total`}
+          subtitle={`${formatCurrency(metrics.paidTotal)} total`}
         />
       </div>
 
@@ -423,7 +425,7 @@ function SuperAdminDashboard() {
             <p className="text-sm text-gray-600">Sum of payments marked PAID in the last thirty days.</p>
           </div>
           <p className="text-2xl font-bold tracking-tight text-emerald-800">
-            ₹{metrics.recentRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            {formatCurrency(metrics.recentRevenue)}
           </p>
         </div>
         <Link
@@ -482,7 +484,7 @@ function SuperAdminDashboard() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-900">₹{Number(row.amount || 0).toLocaleString()}</span>
+                  <span className="font-bold text-gray-900">{formatCurrency(row.amount)}</span>
                   <span
                     className={`rounded-full px-2 py-0.5 text-[0.65rem] font-bold uppercase ${
                       row.status === "PAID"
@@ -577,7 +579,7 @@ function SuperAdminDashboard() {
                 </div>
                 <p className="mt-1 text-xs text-gray-500">
                   {row.role || "—"} · {row.schoolId?.name || "—"} ·{" "}
-                  {row.timestamp ? new Date(row.timestamp).toLocaleString() : "—"}
+                  {formatDateTime(row.timestamp)}
                 </p>
               </div>
             ))}

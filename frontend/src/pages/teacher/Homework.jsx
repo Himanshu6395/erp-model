@@ -1,33 +1,37 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import FormCard from "../../components/FormCard";
+import { BookOpen, Calendar, ClipboardList, Pencil, Plus, Trash2 } from "lucide-react";
 import { teacherService } from "../../services/teacherService";
+import { DataTable, EmptyState, inputClass, labelClass, PageCard, PageHeader } from "./teacherPageUi";
+
+const btnPrimary =
+  "inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:opacity-50";
+const btnSecondary =
+  "inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50";
+
+function classLabelForEdit(item) {
+  const cls = item.classId;
+  if (!cls) return "—";
+  const name = cls.name || cls.className || "Class";
+  const section = item.section || cls.section;
+  return section ? `${name} · ${section}` : name;
+}
 
 function TeacherHomeworkPage() {
-  const [loading, setLoading] = useState(false);
-  const [scopeLoading, setScopeLoading] = useState(true);
   const [scope, setScope] = useState(null);
+  const [scopeLoading, setScopeLoading] = useState(true);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [items, setItems] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    subject: "",
-    dueDate: "",
-    attachments: "",
-  });
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ title: "", description: "", subject: "", dueDate: "", attachments: "" });
 
   const loadScope = async () => {
+    setScopeLoading(true);
     try {
-      setScopeLoading(true);
       const data = await teacherService.getHomeworkScope();
       setScope(data);
-      if (data?.options?.length) {
-        setSelectedClassId(String(data.options[0].classId));
-      } else {
-        setSelectedClassId("");
-      }
+      if (data?.options?.length) setSelectedClassId(String(data.options[0].classId));
     } catch (error) {
       toast.error(error.message);
       setScope(null);
@@ -47,26 +51,13 @@ function TeacherHomeworkPage() {
 
   useEffect(() => {
     loadScope();
-  }, []);
-
-  useEffect(() => {
     load();
   }, []);
 
-  const classLabelForEdit = (item) => {
-    const name = item.classId?.name || "";
-    const sec = item.section || item.classId?.section || "";
-    return sec ? `${name} — Section ${sec}` : name || "—";
-  };
-
-  const submit = async (event) => {
-    event.preventDefault();
+  const submit = async (e) => {
+    e.preventDefault();
     if (!scope?.options?.length) {
-      toast.error("No class is mapped to your profile. Contact the school admin.");
-      return;
-    }
-    if (scope.requiresClassPick && !selectedClassId) {
-      toast.error("Select a class");
+      toast.error("No class assigned to you");
       return;
     }
     setLoading(true);
@@ -78,9 +69,7 @@ function TeacherHomeworkPage() {
           .map((item) => item.trim())
           .filter(Boolean),
       };
-      if (scope.requiresClassPick) {
-        payload.classId = selectedClassId;
-      }
+      if (scope.requiresClassPick) payload.classId = selectedClassId;
       if (editingId) {
         await teacherService.updateHomework(editingId, payload);
         toast.success("Homework updated");
@@ -132,26 +121,35 @@ function TeacherHomeworkPage() {
   const selectedOption = scope?.options?.find((o) => String(o.classId) === String(selectedClassId));
 
   return (
-    <div className="space-y-6">
-      <FormCard
-        title={editingId ? "Edit Homework" : "Create Homework"}
-        subtitle="Class and section come from your school mapping. Students only see homework for their own class and section."
+    <div className="space-y-8">
+      <PageHeader
+        badge="Teaching"
+        title="Homework"
+        subtitle="Create and manage assignments for your mapped classes. Students only see homework for their class and section."
+      />
+
+      <PageCard
+        title={editingId ? "Edit assignment" : "Create assignment"}
+        subtitle="Class and section come from your school mapping."
+        icon={editingId ? Pencil : Plus}
       >
         {scopeLoading ? (
-          <p className="text-sm text-gray-500">Loading your class mapping…</p>
+          <p className="text-sm text-slate-500">Loading your class mapping…</p>
         ) : !scope?.options?.length ? (
-          <p className="text-sm text-amber-800">
-            You are not mapped to any class as class teacher or subject teacher. Homework cannot be created until the admin assigns you.
-          </p>
+          <EmptyState
+            icon={BookOpen}
+            title="No class assigned"
+            message="Ask the school admin to map you as class teacher or subject teacher before creating homework."
+          />
         ) : (
-          <form className="grid gap-3 sm:grid-cols-2" onSubmit={submit}>
-            <div className="sm:col-span-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
-              <div className="font-medium text-gray-700">Assigned class &amp; section</div>
+          <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
+            <div className="sm:col-span-2 rounded-2xl border border-brand-100/80 bg-gradient-to-br from-brand-50/80 to-indigo-50/50 px-4 py-3">
+              <p className={labelClass}>Assigned class &amp; section</p>
               {editingId ? (
-                <p className="mt-1 text-gray-900">{classLabelForEdit(items.find((i) => i._id === editingId) || {})}</p>
+                <p className="text-sm font-semibold text-slate-900">{classLabelForEdit(items.find((i) => i._id === editingId) || {})}</p>
               ) : scope.requiresClassPick ? (
                 <select
-                  className="input mt-2 max-w-md"
+                  className={`${inputClass} mt-1 max-w-md`}
                   value={selectedClassId}
                   onChange={(e) => setSelectedClassId(e.target.value)}
                   required
@@ -164,101 +162,106 @@ function TeacherHomeworkPage() {
                   ))}
                 </select>
               ) : (
-                <p className="mt-1 text-gray-900">{selectedOption?.label || scope.options[0]?.label}</p>
+                <p className="text-sm font-semibold text-slate-900">{selectedOption?.label || scope.options[0]?.label}</p>
               )}
-              <p className="mt-1 text-xs text-gray-500">These fields are set by the school and cannot be edited manually.</p>
             </div>
 
-            <input
-              className="input"
-              placeholder="Title"
-              value={form.title}
-              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-              required
-            />
-            <input
-              className="input"
-              placeholder="Subject"
-              value={form.subject}
-              onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
-            />
-            <input
-              className="input"
-              type="date"
-              value={form.dueDate}
-              onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))}
-              required
-            />
-            <input
-              className="input"
-              placeholder="Attachments URLs comma-separated"
-              value={form.attachments}
-              onChange={(e) => setForm((p) => ({ ...p, attachments: e.target.value }))}
-            />
-            <textarea
-              className="input min-h-24 sm:col-span-2"
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-            />
-            <div className="flex gap-2 sm:col-span-2">
-              <button className="btn-primary w-fit" type="submit" disabled={loading}>
-                {loading ? "Saving..." : editingId ? "Update Homework" : "Create Homework"}
+            <div>
+              <label className={labelClass}>Title</label>
+              <input className={inputClass} value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} required />
+            </div>
+            <div>
+              <label className={labelClass}>Subject</label>
+              <input className={inputClass} value={form.subject} onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))} />
+            </div>
+            <div>
+              <label className={labelClass}>Due date</label>
+              <input className={inputClass} type="date" value={form.dueDate} onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))} required />
+            </div>
+            <div>
+              <label className={labelClass}>Attachment URLs</label>
+              <input
+                className={inputClass}
+                placeholder="Comma-separated links"
+                value={form.attachments}
+                onChange={(e) => setForm((p) => ({ ...p, attachments: e.target.value }))}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelClass}>Description</label>
+              <textarea
+                className={`${inputClass} min-h-28`}
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 sm:col-span-2">
+              <button className={btnPrimary} type="submit" disabled={loading}>
+                {loading ? "Saving…" : editingId ? "Update homework" : "Create homework"}
               </button>
-              {editingId && (
-                <button className="btn-secondary w-fit" type="button" onClick={cancelEdit}>
+              {editingId ? (
+                <button className={btnSecondary} type="button" onClick={cancelEdit}>
                   Cancel
                 </button>
-              )}
+              ) : null}
             </div>
           </form>
         )}
-      </FormCard>
+      </PageCard>
 
-      <FormCard title="Homework List" subtitle="Track submissions and late submissions.">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-gray-600">
-                <th className="py-2 pr-3">Title</th>
-                <th className="py-2 pr-3">Class</th>
-                <th className="py-2 pr-3">Due</th>
-                <th className="py-2 pr-3">Submissions</th>
-                <th className="py-2 pr-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item._id} className="border-b">
-                  <td className="py-2 pr-3">{item.title}</td>
-                  <td className="py-2 pr-3">{classLabelForEdit(item)}</td>
-                  <td className="py-2 pr-3">{new Date(item.dueDate).toLocaleDateString()}</td>
-                  <td className="py-2 pr-3">
-                    {item.submissionCount} (late: {item.lateSubmissionCount})
-                  </td>
-                  <td className="py-2 pr-3">
-                    <div className="flex gap-2">
-                      <button className="btn-secondary px-2 py-1 text-xs" type="button" onClick={() => edit(item)}>
-                        Edit
-                      </button>
-                      <button className="btn-secondary px-2 py-1 text-xs" type="button" onClick={() => remove(item._id)}>
-                        Delete
-                      </button>
-                    </div>
-                  </td>
+      <PageCard title="Assignments" subtitle="Track submissions and late submissions." icon={ClipboardList}>
+        {!items.length ? (
+          <EmptyState icon={BookOpen} title="No homework yet" message="Create your first assignment above." />
+        ) : (
+          <DataTable>
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/90 text-left text-xs font-bold uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3">Title</th>
+                  <th className="px-4 py-3">Class</th>
+                  <th className="px-4 py-3">Due</th>
+                  <th className="px-4 py-3">Submissions</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
-              ))}
-              {!items.length && (
-                <tr>
-                  <td colSpan={5} className="py-3 text-gray-500">
-                    No homework found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </FormCard>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item._id} className="border-b border-slate-50 transition hover:bg-slate-50/60">
+                    <td className="px-4 py-3 font-medium text-slate-900">{item.title}</td>
+                    <td className="px-4 py-3 text-slate-600">{classLabelForEdit(item)}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                        {new Date(item.dueDate).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                        {item.submissionCount}
+                      </span>
+                      <span className="ml-1 text-xs text-slate-500">late: {item.lateSubmissionCount}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button className={btnSecondary + " !px-3 !py-1.5 text-xs"} type="button" onClick={() => edit(item)}>
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </button>
+                        <button
+                          className="inline-flex items-center gap-1 rounded-2xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
+                          type="button"
+                          onClick={() => remove(item._id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </DataTable>
+        )}
+      </PageCard>
     </div>
   );
 }
