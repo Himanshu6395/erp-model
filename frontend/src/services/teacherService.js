@@ -65,6 +65,22 @@ export const teacherService = {
   getDoubts: async () => (await api.get("/teacher/doubts")).data.data,
   answerDoubt: async (doubtId, answer) => (await api.put(`/teacher/doubts/${doubtId}/answer`, { answer })).data.data,
 
+  getOnlineExamContext: async () => (await api.get("/teacher/online-exams/context")).data.data,
+  getOnlineExamDashboard: async () => (await api.get("/teacher/online-exams/dashboard")).data.data,
+  getOnlineExamAnalytics: async () => (await api.get("/teacher/online-exams/analytics")).data.data,
+  getOnlineExamResults: async () => (await api.get("/teacher/online-exams/results")).data.data,
+  gradeOnlineExamResult: async (resultId, payload) => (await api.post(`/teacher/online-exams/results/${resultId}/grade`, payload)).data.data,
+  getOnlineExams: async (params) => (await api.get("/teacher/online-exams/exams", { params })).data.data,
+  createOnlineExam: async (payload) => (await api.post("/teacher/online-exams/exams", payload)).data.data,
+  updateOnlineExam: async (examId, payload) => (await api.put(`/teacher/online-exams/exams/${examId}`, payload)).data.data,
+  submitOnlineExamForApproval: async (examId) => (await api.post(`/teacher/online-exams/exams/${examId}/submit`)).data.data,
+  publishOnlineExam: async (examId) => (await api.post(`/teacher/online-exams/exams/${examId}/publish`)).data.data,
+  getOnlineQuestionBank: async (params) => (await api.get("/teacher/online-exams/questions", { params })).data.data,
+  createOnlineQuestion: async (payload) => (await api.post("/teacher/online-exams/questions", payload)).data.data,
+  deleteOnlineQuestion: async (questionId) => (await api.delete(`/teacher/online-exams/questions/${questionId}`)).data.data,
+  importOnlineQuestions: async (payload) => (await api.post("/teacher/online-exams/questions/import", payload)).data.data,
+  generateAiOnlineQuestions: async (payload) => (await api.post("/teacher/online-exams/questions/generate-ai", payload)).data.data,
+
   getNotifications: async () => (await api.get("/teacher/notifications")).data.data,
   markNotificationRead: async (notificationId) => (await api.put(`/teacher/notifications/${notificationId}/read`)).data.data,
 

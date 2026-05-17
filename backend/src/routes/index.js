@@ -13,6 +13,7 @@ import superAdminSettingsRoutes from "../modules/superAdminSettings/routes.js";
 import schoolAdminSettingsRoutes from "../modules/schoolAdminSettings/routes.js";
 import platformThemeRoutes from "../modules/platformTheme/routes.js";
 import { libraryAdminRoutes, libraryStudentRoutes } from "../modules/library/routes.js";
+import { onlineExamAdminRoutes, onlineExamStudentRoutes, onlineExamTeacherRoutes } from "../modules/onlineExam/routes.js";
 
 const router = Router();
 
@@ -26,10 +27,13 @@ router.use("/platform", platformThemeRoutes);
 router.use("/announcements", globalAnnouncementSchoolRoutes);
 router.use("/school-admin", schoolAdminSettingsRoutes);
 router.use("/school-admin/library", libraryAdminRoutes);
+router.use("/school-admin/online-exams", onlineExamAdminRoutes);
 router.use("/school-admin", adminRoutes);
 router.use("/school-admin/transport", transportRoutes);
+router.use("/student/online-exams", onlineExamStudentRoutes);
 router.use("/student", libraryStudentRoutes);
 router.use("/student", studentRoutes);
+router.use("/teacher/online-exams", onlineExamTeacherRoutes);
 router.use("/teacher", teacherRoutes);
 
 export default router;

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { FaChalkboardTeacher, FaGraduationCap, FaSchool } from "react-icons/fa";
 import {
@@ -23,6 +23,7 @@ import {
   MdLink,
   MdEventBusy,
   MdCampaign,
+  MdExpandMore,
 } from "react-icons/md";
 import SettingsNavGroup from "../components/layout/SettingsNavGroup";
 import SuperAdminSidebarProfile from "../components/layout/SuperAdminSidebarProfile";
@@ -111,6 +112,18 @@ const menuByRole = {
     { to: "/student/alerts", label: "Alerts / Notifications", icon: <MdNotifications /> },
     { to: "/student/attendance", label: "Attendance", icon: <MdPeople /> },
     { to: "/student/assignments", label: "Assignments / Course Plan", icon: <MdAssignment /> },
+    {
+      to: "/student/online-exams",
+      label: "Online Exams",
+      icon: <MdAssessment />,
+      children: [
+        { to: "/student/online-exams/upcoming", label: "Upcoming Exams" },
+        { to: "/student/online-exams/live", label: "Live Exams" },
+        { to: "/student/online-exams/completed", label: "Completed Exams" },
+        { to: "/student/online-exams/results", label: "Results" },
+        { to: "/student/online-exams/performance", label: "Performance" },
+      ],
+    },
     { to: "/student/library", label: "Library", icon: <MdBook /> },
     { to: "/student/links-registration", label: "Links / Registration", icon: <MdLink /> },
     { to: "/student/feedback", label: "Feedback", icon: <MdFeedback /> },
@@ -131,6 +144,20 @@ const menuByRole = {
     { to: "/teacher/attendance", label: "Attendance", icon: <MdPeople /> },
     { to: "/teacher/homework", label: "Homework", icon: <MdAssignment /> },
     { to: "/teacher/exams-marks", label: "Exams & Marks", icon: <MdAssessment /> },
+    {
+      to: "/teacher/online-exams",
+      label: "Online Exams",
+      icon: <MdAssessment />,
+      children: [
+        { to: "/teacher/online-exams/dashboard", label: "Dashboard" },
+        { to: "/teacher/online-exams/create", label: "Create Exam" },
+        { to: "/teacher/online-exams/my-exams", label: "My Exams" },
+        { to: "/teacher/online-exams/question-bank", label: "Question Bank" },
+        { to: "/teacher/online-exams/live", label: "Live Exams" },
+        { to: "/teacher/online-exams/results", label: "Results" },
+        { to: "/teacher/online-exams/analytics", label: "Analytics" },
+      ],
+    },
     { to: "/teacher/timetable", label: "Timetable", icon: <MdSchedule /> },
     { to: "/teacher/communication", label: "Communication", icon: <MdNotifications /> },
     { to: "/teacher/announcements", label: "Announcements", icon: <MdNotifications /> },
@@ -158,6 +185,7 @@ function Sidebar({ role, mobileOpen, onClose }) {
   const compactNav = isTeacher || isStudent;
   const { displayName } = useSchoolBranding();
   const { settings: platform } = usePlatformSettings();
+  const [openGroups, setOpenGroups] = useState({});
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -167,6 +195,12 @@ function Sidebar({ role, mobileOpen, onClose }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [mobileOpen, onClose]);
+
+  useEffect(() => {
+    const activeGroup = menu.find((item) => item.children?.length && location.pathname.startsWith(item.to));
+    if (!activeGroup) return;
+    setOpenGroups((current) => ({ ...current, [activeGroup.to]: true }));
+  }, [location.pathname, menu]);
 
   return (
     <>
@@ -253,19 +287,23 @@ function Sidebar({ role, mobileOpen, onClose }) {
                 return <SettingsNavGroup key={item.to} item={item} onClose={onClose} parentIcon={item.icon} />;
               }
               const sectionActive = location.pathname.startsWith(item.to);
+              const sectionOpen = openGroups[item.to] ?? sectionActive;
               return (
                 <div key={item.to} className="space-y-1">
-                  <NavLink
-                    to={item.children[0].to}
-                    onClick={onClose}
+                  <button
+                    type="button"
+                    onClick={() => setOpenGroups((current) => ({ ...current, [item.to]: !sectionOpen }))}
                     className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
                       sectionActive ? "bg-brand-600 text-white" : "hover:bg-gray-800"
                     }`}
                   >
                     <span className="text-base">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </NavLink>
-                  {sectionActive ? (
+                    <span className="flex-1 text-left">{item.label}</span>
+                    <span className={`text-lg transition-transform duration-200 ${sectionOpen ? "rotate-180" : ""}`}>
+                      <MdExpandMore />
+                    </span>
+                  </button>
+                  {sectionOpen ? (
                     <div className="ml-3 space-y-0.5 border-l border-gray-700 pl-2">
                       {item.children.map((child) => (
                         <NavLink

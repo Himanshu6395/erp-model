@@ -109,6 +109,13 @@ import StudentAlertsPage from "../pages/student/Alerts";
 import StudentNoticeBoardPage from "../pages/student/NoticeBoard";
 import StudentLeavesListPage from "../pages/student/LeavesList";
 import StudentLeaveApplyPage from "../pages/student/LeaveApply";
+import StudentOnlineExamLayout from "../layouts/StudentOnlineExamLayout";
+import StudentUpcomingExamsPage from "../pages/student/onlineExams/StudentUpcomingExamsPage";
+import StudentLiveExamsPage from "../pages/student/onlineExams/StudentLiveExamsPage";
+import StudentCompletedExamsPage from "../pages/student/onlineExams/StudentCompletedExamsPage";
+import StudentOnlineExamResultsPage from "../pages/student/onlineExams/StudentOnlineExamResultsPage";
+import StudentOnlineExamPerformancePage from "../pages/student/onlineExams/StudentOnlineExamPerformancePage";
+import StudentOnlineExamAttemptPage from "../pages/student/onlineExams/StudentOnlineExamAttemptPage";
 import TeacherDashboard from "../pages/teacher/Dashboard";
 import TeacherStudentsPage from "../pages/teacher/Students";
 import TeacherAttendancePage from "../pages/teacher/Attendance";
@@ -134,6 +141,14 @@ import AccountSettingsTab from "../pages/teacher/settings/AccountSettingsTab";
 import TeacherSalaryPage from "../pages/teacher/Salary";
 import TeacherActivitiesPage from "../pages/teacher/Activities";
 import TeacherStudentLeavesPage from "../pages/teacher/StudentLeaves";
+import TeacherOnlineExamLayout from "../layouts/TeacherOnlineExamLayout";
+import TeacherOnlineExamDashboardPage from "../pages/teacher/onlineExams/TeacherOnlineExamDashboardPage";
+import TeacherCreateExamPage from "../pages/teacher/onlineExams/TeacherCreateExamPage";
+import TeacherMyExamsPage from "../pages/teacher/onlineExams/TeacherMyExamsPage";
+import TeacherQuestionBankPage from "../pages/teacher/onlineExams/TeacherQuestionBankPage";
+import TeacherLiveExamsPage from "../pages/teacher/onlineExams/TeacherLiveExamsPage";
+import TeacherOnlineExamResultsPage from "../pages/teacher/onlineExams/TeacherOnlineExamResultsPage";
+import TeacherOnlineExamAnalyticsPage from "../pages/teacher/onlineExams/TeacherOnlineExamAnalyticsPage";
 
 function HomeRoute() {
   const { isAuthenticated, user } = useAuth();
@@ -349,6 +364,15 @@ function AppRoutes() {
           <Route path="/student/study-materials" element={<StudentStudyMaterialsPage />} />
           <Route path="/student/leaves" element={<StudentLeavesListPage />} />
           <Route path="/student/leaves/apply" element={<StudentLeaveApplyPage />} />
+          <Route path="/student/online-exams" element={<StudentOnlineExamLayout />}>
+            <Route index element={<Navigate to="upcoming" replace />} />
+            <Route path="upcoming" element={<StudentUpcomingExamsPage />} />
+            <Route path="live" element={<StudentLiveExamsPage />} />
+            <Route path="completed" element={<StudentCompletedExamsPage />} />
+            <Route path="results" element={<StudentOnlineExamResultsPage />} />
+            <Route path="performance" element={<StudentOnlineExamPerformancePage />} />
+          </Route>
+          <Route path="/student/online-exams/live/:examId/attempt" element={<StudentOnlineExamAttemptPage />} />
         </Route>
       </Route>
 
@@ -360,6 +384,16 @@ function AppRoutes() {
           <Route path="/teacher/attendance" element={<TeacherAttendancePage />} />
           <Route path="/teacher/homework" element={<TeacherHomeworkPage />} />
           <Route path="/teacher/exams-marks" element={<TeacherExamsMarksPage />} />
+          <Route path="/teacher/online-exams" element={<TeacherOnlineExamLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<TeacherOnlineExamDashboardPage />} />
+            <Route path="create" element={<TeacherCreateExamPage />} />
+            <Route path="my-exams" element={<TeacherMyExamsPage />} />
+            <Route path="question-bank" element={<TeacherQuestionBankPage />} />
+            <Route path="live" element={<TeacherLiveExamsPage />} />
+            <Route path="results" element={<TeacherOnlineExamResultsPage />} />
+            <Route path="analytics" element={<TeacherOnlineExamAnalyticsPage />} />
+          </Route>
           <Route path="/teacher/timetable" element={<TeacherTimetablePage />} />
           <Route path="/teacher/communication" element={<TeacherCommunicationPage />} />
           <Route path="/teacher/announcements" element={<TeacherAnnouncementsPage />} />
