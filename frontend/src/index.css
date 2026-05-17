@@ -75,11 +75,11 @@ html[data-erp-theme="dark"] .card {
 /* Thin scrollbar for dashboard sidebar nav (Super Admin) */
 .sidebar-thin-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.32) transparent;
 }
 
 .sidebar-thin-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 2px;
 }
 
 .sidebar-thin-scrollbar::-webkit-scrollbar-track {
@@ -87,12 +87,12 @@ html[data-erp-theme="dark"] .card {
 }
 
 .sidebar-thin-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(148, 163, 184, 0.28);
   border-radius: 999px;
 }
 
 .sidebar-thin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.55);
+  background: rgba(148, 163, 184, 0.42);
 }
 
 /* Teacher portal: compact sidebar + table scroll */

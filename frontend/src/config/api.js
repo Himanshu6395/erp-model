@@ -6,7 +6,7 @@ const LOCAL_API = "http://localhost:5000";
 const PROD_API = "https://ju2i87i4x6.execute-api.ap-south-1.amazonaws.com";
 
 // Toggle this before deployment
-const USE_LOCAL =false;
+const USE_LOCAL =true;
 
 export const BASE_URL = USE_LOCAL ? LOCAL_API : PROD_API;
 

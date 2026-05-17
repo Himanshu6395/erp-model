@@ -17,6 +17,12 @@ import RuleFolderOutlinedIcon from "@mui/icons-material/RuleFolderOutlined";
 import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
 import SettingsApplicationsOutlinedIcon from "@mui/icons-material/SettingsApplicationsOutlined";
 import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
+import RocketLaunchOutlinedIcon from "@mui/icons-material/RocketLaunchOutlined";
+import PlayCircleOutlineOutlinedIcon from "@mui/icons-material/PlayCircleOutlineOutlined";
+import AssignmentTurnedInOutlinedIcon from "@mui/icons-material/AssignmentTurnedInOutlined";
+import QueryStatsOutlinedIcon from "@mui/icons-material/QueryStatsOutlined";
+import QuizOutlinedIcon from "@mui/icons-material/QuizOutlined";
+import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 
 const CHILD_ICONS = {
   Profile: PersonOutlineIcon,
@@ -37,6 +43,13 @@ const CHILD_ICONS = {
   "Student Requests": PendingActionsOutlinedIcon,
   Reports: BarChartOutlinedIcon,
   "Library Settings": SettingsApplicationsOutlinedIcon,
+  "Upcoming Exams": RocketLaunchOutlinedIcon,
+  "Live Exams": PlayCircleOutlineOutlinedIcon,
+  "Completed Exams": AssignmentTurnedInOutlinedIcon,
+  Performance: QueryStatsOutlinedIcon,
+  "Create Exam": AddCircleOutlineOutlinedIcon,
+  "My Exams": QuizOutlinedIcon,
+  "Question Bank": MenuBookOutlinedIcon,
 };
 
 export default function SettingsNavGroup({ item, onClose, parentIcon }) {
