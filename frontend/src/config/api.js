@@ -3,7 +3,7 @@
  * All HTTP clients should use BASE_URL — do not hardcode hosts elsewhere.
  */
 const LOCAL_API = "http://localhost:5000";
-const PROD_API = "https://43.205.113.119";
+const PROD_API = "https://ju2i87i4x6.execute-api.ap-south-1.amazonaws.com";
 
 // Toggle this before deployment
 const USE_LOCAL =false;
