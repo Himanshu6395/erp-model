@@ -15,21 +15,39 @@ import {
 } from "lucide-react";
 import Loader from "../../components/Loader";
 import { superAdminOpsService } from "../../services/superAdminOpsService";
+import { superAdminService } from "../../services/superAdminService";
+
+const getSchoolLabel = (school) => {
+  const name = school?.basicInfo?.schoolName || school?.name || "Unnamed school";
+  const code = school?.basicInfo?.schoolCode || school?.code || "No code";
+  return `${name} (${code})`;
+};
 
 function SecurityDashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [schools, setSchools] = useState([]);
+  const [schoolsLoading, setSchoolsLoading] = useState(true);
   const [schoolId, setSchoolId] = useState("");
   const [reason, setReason] = useState("");
 
   const load = async () => {
     setLoading(true);
     try {
-      setStats(await superAdminOpsService.getSecurityDashboard());
+      const [dashboard, schoolResponse] = await Promise.all([
+        superAdminOpsService.getSecurityDashboard(),
+        superAdminService.getSchools({ page: 1, limit: 200 }),
+      ]);
+
+      const schoolRows = schoolResponse?.data || [];
+      setStats(dashboard);
+      setSchools(schoolRows);
+      setSchoolId((current) => (current && schoolRows.some((school) => school._id === current) ? current : schoolRows[0]?._id || ""));
     } catch (error) {
       toast.error(error.message);
     } finally {
       setLoading(false);
+      setSchoolsLoading(false);
     }
   };
 
@@ -107,8 +125,8 @@ function SecurityDashboardPage() {
             </p>
             <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Security dashboard</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/80">
-              Live counts from the security service. Use quick actions with a valid <strong className="text-white">MongoDB school ID</strong>{" "}
-              (copy from Schools list or URL).
+              Live counts from the security service. Use quick actions with a selected <strong className="text-white">school workspace</strong>{" "}
+              and we will apply the action using its tenant ID automatically.
             </p>
           </div>
           <Link
@@ -168,20 +186,32 @@ function SecurityDashboardPage() {
             </span>
             <div>
               <h2 className="text-sm font-bold text-slate-900">Quick actions</h2>
-              <p className="text-xs text-slate-500">Target a school by ID</p>
+              <p className="text-xs text-slate-500">Target a school from the platform list</p>
             </div>
           </div>
         </div>
         <div className="space-y-5 p-5 sm:p-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold text-slate-600">School ID</label>
-              <input
-                className="input w-full rounded-xl py-2.5 font-mono text-sm shadow-sm"
-                placeholder="507f1f77bcf86cd799439011"
+              <label className="mb-1.5 block text-xs font-semibold text-slate-600">School</label>
+              <select
+                className="input w-full rounded-xl py-2.5 text-sm shadow-sm"
                 value={schoolId}
-                onChange={(e) => setSchoolId(e.target.value.trim())}
-              />
+                onChange={(e) => setSchoolId(e.target.value)}
+                disabled={schoolsLoading || schools.length === 0}
+              >
+                <option value="">{schoolsLoading ? "Loading schools..." : "Select school..."}</option>
+                {schools.map((school) => (
+                  <option key={school._id} value={school._id}>
+                    {getSchoolLabel(school)} - {school._id}
+                  </option>
+                ))}
+              </select>
+              {schoolId ? (
+                <p className="mt-1.5 text-xs text-slate-500">
+                  Tenant ID: <span className="font-mono text-slate-700">{schoolId}</span>
+                </p>
+              ) : null}
             </div>
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-slate-600">Block reason (optional)</label>

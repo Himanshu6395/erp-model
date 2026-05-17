@@ -76,6 +76,22 @@ const menuByRole = {
     { to: "/admin/notices", label: "Notices", icon: <MdNotifications /> },
     { to: "/admin/inquiries", label: "Inquiry", icon: <MdQuestionAnswer /> },
     {
+      to: "/admin/library",
+      label: "Library Management",
+      icon: <MdBook />,
+      children: [
+        { to: "/admin/library/dashboard", label: "Dashboard" },
+        { to: "/admin/library/books", label: "Books" },
+        { to: "/admin/library/categories", label: "Categories" },
+        { to: "/admin/library/issued", label: "Issued Books" },
+        { to: "/admin/library/returns", label: "Return Books" },
+        { to: "/admin/library/fines", label: "Fine Management" },
+        { to: "/admin/library/requests", label: "Student Requests" },
+        { to: "/admin/library/reports", label: "Reports" },
+        { to: "/admin/library/settings", label: "Library Settings" },
+      ],
+    },
+    {
       to: "/admin/settings",
       label: "Settings",
       icon: <MdSettings />,

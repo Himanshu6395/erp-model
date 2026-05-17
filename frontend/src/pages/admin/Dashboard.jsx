@@ -34,6 +34,7 @@ const QUICK_LINKS = [
   { to: "/admin/timetable", label: "Timetable", hint: "Periods and room planning", icon: CalendarDays },
   { to: "/admin/notices", label: "Notices", hint: "School communications", icon: Megaphone },
   { to: "/admin/subjects", label: "Subjects", hint: "Curriculum setup", icon: BookOpen },
+  { to: "/admin/library/dashboard", label: "Library", hint: "Books, requests, and fines", icon: BookOpen },
 ];
 
 function formatCurrency(n) {

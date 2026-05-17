@@ -1,5 +1,5 @@
 import { FaSignOutAlt } from "react-icons/fa";
-import { Menu, Sparkles } from "lucide-react";
+import { Menu, Shield, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
@@ -64,18 +64,20 @@ function Navbar({ onOpenMobileNav, mobileNavOpen }) {
 
   return (
     <header
-      className={`fixed left-0 right-0 top-0 z-40 border-b border-white/70 px-4 shadow-[0_12px_40px_-24px_rgba(15,23,42,0.28)] backdrop-blur-xl md:px-6 ${
+      className={`fixed left-0 right-0 top-0 z-40 border-b border-slate-200/70 px-4 shadow-[0_18px_42px_-26px_rgba(15,23,42,0.22)] backdrop-blur-xl md:px-6 ${
         compactSidebar ? "md:left-52" : "md:left-64"
       }`}
-      style={{ backgroundColor: "var(--erp-header-bg, rgba(255,255,255,0.8))" }}
+      style={{ backgroundColor: "var(--erp-header-bg, rgba(248,250,252,0.92))" }}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-200/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,250,252,0.94))]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-200/80 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
       <div className="relative flex h-[4.25rem] items-center justify-between gap-3 md:gap-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <button
             type="button"
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-800 shadow-sm transition hover:bg-slate-50 md:hidden"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200/80 bg-white text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 md:hidden"
             aria-label="Open navigation menu"
             aria-expanded={Boolean(mobileNavOpen)}
             aria-controls="dashboard-sidebar"
@@ -84,12 +86,21 @@ function Navbar({ onOpenMobileNav, mobileNavOpen }) {
             <Menu className="h-5 w-5" aria-hidden />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-brand-600/90">
-              <BrandingLogo size={18} className="shrink-0 md:hidden" />
-              <Sparkles className="hidden h-3 w-3 shrink-0 md:block" aria-hidden />
-              <span className="truncate">{brandingName}</span>
-            </p>
-            <h1 className="mt-0.5 flex min-w-0 items-center gap-2 truncate text-lg font-bold tracking-tight text-slate-950 sm:text-xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-100 bg-cyan-50/80 px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.22em] text-cyan-700 shadow-sm">
+                <BrandingLogo size={16} className="shrink-0 md:hidden" />
+                <Sparkles className="hidden h-3 w-3 shrink-0 md:block" aria-hidden />
+                <span className="truncate">{brandingName}</span>
+              </span>
+              {isSuperAdmin ? (
+                <span className="hidden items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-violet-700 sm:inline-flex">
+                  <Shield className="h-3 w-3" />
+                  Super admin
+                </span>
+              ) : null}
+            </div>
+
+            <h1 className="mt-1 flex min-w-0 items-center gap-2 truncate text-lg font-bold tracking-tight text-slate-950 sm:text-[1.35rem]">
               {isSuperAdmin ? (
                 <ErpUserAvatar
                   src={avatarUrl}
@@ -100,8 +111,8 @@ function Navbar({ onOpenMobileNav, mobileNavOpen }) {
                 />
               ) : null}
               <span className="truncate">
-                Welcome,{" "}
-                <span className="bg-gradient-to-r from-slate-950 to-brand-700 bg-clip-text text-transparent">
+                <span className="text-slate-500">Welcome, </span>
+                <span className="bg-gradient-to-r from-slate-950 via-violet-700 to-cyan-700 bg-clip-text text-transparent">
                   {displayName}
                 </span>
               </span>
@@ -146,7 +157,7 @@ function Navbar({ onOpenMobileNav, mobileNavOpen }) {
             <TeacherAccountMenu />
           ) : (
             <>
-              <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-4 py-2 shadow-sm sm:flex">
+              <div className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm sm:flex">
                 <span className="text-xs font-semibold text-slate-700">{formatRole(user?.role)}</span>
               </div>
               <button
