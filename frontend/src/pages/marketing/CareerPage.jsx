@@ -1,6 +1,7 @@
 import { Heart, Lightbulb, Users } from "lucide-react";
 import MarketingPageHero from "../../components/MarketingPageHero";
 import MarketingPageCta from "../../components/MarketingPageCta";
+import { SITE_BRAND, SITE_CONTACT } from "../../config/siteContact";
 
 const values = [
   {
@@ -11,7 +12,7 @@ const values = [
   {
     icon: Lightbulb,
     title: "Pragmatic innovation",
-    text: "We ship useful increments—RBAC, better notices, cleaner fees—before chasing trends that do not help a principal sleep at night.",
+    text: "We ship useful increments like RBAC, better notices, and cleaner fees before chasing trends that do not help a principal sleep at night.",
   },
   {
     icon: Users,
@@ -27,7 +28,7 @@ function CareerPage() {
         eyebrow="Careers"
         title="Build software that"
         titleHighlight="schools rely on"
-        subtitle="We hire people who want depth over hype—whether you write code, design flows, or guide a trust through go-live. If education operations fascinate you, you will fit right in."
+        subtitle="We hire people who want depth over hype, whether you write code, design flows, or guide a trust through go-live. If education operations fascinate you, you will fit right in."
       />
 
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
@@ -58,16 +59,16 @@ function CareerPage() {
             Send your CV, a short note on what you want to learn next, and (if applicable) links to
             GitHub, portfolios, or writing samples to{" "}
             <a
-              href="mailto:schoolerp2004@gmail.com?subject=Careers%20%E2%80%93%20NexusCRM"
+              href={SITE_CONTACT.careerMailtoHref}
               className="font-semibold text-brand-600 underline-offset-2 hover:underline"
             >
-              schoolerp2004@gmail.com
+              {SITE_CONTACT.email}
             </a>{" "}
-            with the subject line <strong className="text-gray-900">Careers – NexusCRM</strong>.
+            with the subject line <strong className="text-gray-900">Careers - {SITE_BRAND.name}</strong>.
           </p>
           <p className="mt-4 text-sm text-gray-600">
-            NexusCRM is an equal-opportunity employer. We welcome applicants of any background,
-            gender, age, or ability—and we make interview adjustments when you let us know what you
+            {SITE_BRAND.name} is an equal-opportunity employer. We welcome applicants of any background,
+            gender, age, or ability, and we make interview adjustments when you let us know what you
             need.
           </p>
         </div>

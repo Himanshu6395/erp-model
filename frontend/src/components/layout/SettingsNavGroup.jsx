@@ -10,6 +10,13 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import AssignmentReturnedOutlinedIcon from "@mui/icons-material/AssignmentReturnedOutlined";
+import RuleFolderOutlinedIcon from "@mui/icons-material/RuleFolderOutlined";
+import BarChartOutlinedIcon from "@mui/icons-material/BarChartOutlined";
+import SettingsApplicationsOutlinedIcon from "@mui/icons-material/SettingsApplicationsOutlined";
+import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined";
 
 const CHILD_ICONS = {
   Profile: PersonOutlineIcon,
@@ -21,6 +28,15 @@ const CHILD_ICONS = {
   "Billing & Subscription": CreditCardIcon,
   "Roles & Permissions": AdminPanelSettingsIcon,
   "Theme & Appearance": PaletteOutlinedIcon,
+  Dashboard: BarChartOutlinedIcon,
+  Books: MenuBookOutlinedIcon,
+  Categories: CategoryOutlinedIcon,
+  "Issued Books": MenuBookOutlinedIcon,
+  "Return Books": AssignmentReturnedOutlinedIcon,
+  "Fine Management": RuleFolderOutlinedIcon,
+  "Student Requests": PendingActionsOutlinedIcon,
+  Reports: BarChartOutlinedIcon,
+  "Library Settings": SettingsApplicationsOutlinedIcon,
 };
 
 export default function SettingsNavGroup({ item, onClose, parentIcon }) {

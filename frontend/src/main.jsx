@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { Toaster } from "react-hot-toast";
 import App from "./App.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ErpThemeProvider from "./providers/ErpThemeProvider.jsx";
 import PlatformSettingsProvider from "./providers/PlatformSettingsProvider.jsx";
@@ -26,6 +27,7 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <ErpThemeProvider>
             <PlatformSettingsProvider>

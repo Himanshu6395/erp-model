@@ -12,6 +12,7 @@ import transportRoutes from "../modules/transport/routes.js";
 import superAdminSettingsRoutes from "../modules/superAdminSettings/routes.js";
 import schoolAdminSettingsRoutes from "../modules/schoolAdminSettings/routes.js";
 import platformThemeRoutes from "../modules/platformTheme/routes.js";
+import { libraryAdminRoutes, libraryStudentRoutes } from "../modules/library/routes.js";
 
 const router = Router();
 
@@ -24,8 +25,10 @@ router.use("/super-admin", superAdminSettingsRoutes);
 router.use("/platform", platformThemeRoutes);
 router.use("/announcements", globalAnnouncementSchoolRoutes);
 router.use("/school-admin", schoolAdminSettingsRoutes);
+router.use("/school-admin/library", libraryAdminRoutes);
 router.use("/school-admin", adminRoutes);
 router.use("/school-admin/transport", transportRoutes);
+router.use("/student", libraryStudentRoutes);
 router.use("/student", studentRoutes);
 router.use("/teacher", teacherRoutes);
 

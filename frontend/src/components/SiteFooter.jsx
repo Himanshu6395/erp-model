@@ -68,7 +68,7 @@ function SiteFooter() {
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-500" aria-hidden />
                   <span>
                     <span className="font-semibold text-gray-300">A: </span>
-                    B 57, East Jyoti Nagar, Shahdra, Delhi 110093
+                    B 57,it Park, sector 13, Chandigarh
                   </span>
                 </li>
                 <li className="flex gap-2">
@@ -88,7 +88,7 @@ function SiteFooter() {
                       href="mailto:schoolerp2004@gmail.com"
                       className="break-all transition hover:text-white"
                     >
-                      schoolerp2004@gmail.com
+                      himanshu.kumar@aqlix.com
                     </a>
                   </span>
                 </li>

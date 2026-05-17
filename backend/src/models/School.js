@@ -109,6 +109,16 @@ const schoolSchema = new mongoose.Schema(
       hostelModule: { type: Boolean, default: false },
       libraryModule: { type: Boolean, default: false },
     },
+    librarySettings: {
+      maxBooksPerStudent: { type: Number, min: 1, default: 3 },
+      defaultIssueDays: { type: Number, min: 1, default: 14 },
+      finePerDay: { type: Number, min: 0, default: 5 },
+      maxIssueDays: { type: Number, min: 1, default: 30 },
+      requestRequiresApproval: { type: Boolean, default: true },
+      allowStudentRequests: { type: Boolean, default: true },
+      allowEbooks: { type: Boolean, default: true },
+      issueReminderDaysBefore: { type: Number, min: 0, default: 2 },
+    },
     security: {
       isActive: { type: Boolean, default: true },
       isBlocked: { type: Boolean, default: false },

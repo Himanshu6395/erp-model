@@ -133,12 +133,12 @@ const STEPS = [
   },
 ];
 
-const FORM_GRID = "grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4";
-const INPUT_H = "h-14 min-h-[56px]";
-const CONTROL_BASE = `w-full min-w-0 ${INPUT_H} rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 shadow-sm transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-[3px] focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`;
+const FORM_GRID = "grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4";
+const INPUT_H = "h-12 min-h-[48px] sm:h-14 sm:min-h-[56px]";
+const CONTROL_BASE = `w-full min-w-0 ${INPUT_H} rounded-xl border border-slate-200 bg-white px-3.5 text-base sm:text-sm text-slate-900 shadow-sm transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-[3px] focus:ring-brand-500/15 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500`;
 const CONTROL_ERROR = "border-rose-400 bg-rose-50/40 focus:border-rose-500 focus:ring-rose-500/15";
 const CHECKBOX_CARD =
-  "flex min-h-[56px] cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300/70 hover:bg-slate-50/90 has-[:checked]:border-brand-500/60 has-[:checked]:bg-brand-50/50";
+  "flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:border-brand-300/70 hover:bg-slate-50/90 has-[:checked]:border-brand-500/60 has-[:checked]:bg-brand-50/50 sm:min-h-[56px] sm:px-4";
 
 function validateStep(stepIndex, form) {
   const errors = {};
@@ -261,7 +261,7 @@ function SubsectionTitle({ children, className = "" }) {
 }
 
 function FormSection({ children }) {
-  return <div className="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 sm:p-5">{children}</div>;
+  return <div className="rounded-2xl border border-slate-200/90 bg-slate-50/70 p-3.5 sm:rounded-xl sm:bg-slate-50/50 sm:p-5">{children}</div>;
 }
 
 function railStepClass({ active, completed, locked }) {
@@ -771,44 +771,40 @@ function CreateSchoolPage() {
   const stepMeta = STEPS[step];
 
   return (
-    <div className="relative w-full max-w-7xl space-y-6 pb-28">
-      <div
-        className="pointer-events-none absolute -right-20 -top-4 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl md:right-0"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute left-1/4 top-96 h-64 w-64 -translate-x-1/2 rounded-full bg-cyan-400/15 blur-3xl lg:top-64"
-        aria-hidden
-      />
+    <div className="relative mx-auto box-border w-full max-w-7xl overflow-x-hidden space-y-4 px-3 pb-[calc(8.75rem+env(safe-area-inset-bottom,0px))] sm:space-y-6 sm:px-0 sm:pb-28">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute -right-8 -top-4 h-48 w-48 rounded-full bg-violet-400/20 blur-3xl sm:-right-16 sm:h-64 sm:w-64 md:right-0 md:h-72 md:w-72" />
+        <div className="absolute left-1/4 top-96 h-48 w-48 -translate-x-1/2 rounded-full bg-cyan-400/15 blur-3xl lg:top-64 lg:h-64 lg:w-64" />
+      </div>
 
-      <header className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+      <header className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm sm:rounded-2xl">
         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand-600 via-indigo-600 to-cyan-500" aria-hidden />
-        <div className="relative px-6 py-7 sm:px-8 sm:py-8">
+        <div className="relative px-4 py-5 sm:px-8 sm:py-8">
           <Link
             to="/super-admin/schools"
-            className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand-600"
+            className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand-600 sm:mb-4"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
             Back to schools
           </Link>
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-brand-800">
+            <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-brand-800 sm:text-[11px] sm:tracking-[0.24em]">
               <Sparkles className="h-3.5 w-3.5 text-brand-600" aria-hidden />
               Tenant provisioning
             </p>
-            <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Create school workspace</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+            <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900 sm:mt-3 sm:text-3xl">Create school workspace</h1>
+            <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600 sm:mt-2 sm:leading-relaxed">
               Use the workflow steps to provision a new tenant. Fields marked{" "}
               <span className="font-semibold text-rose-600">*</span> are required by the API.
             </p>
           </div>
-          <div className="flex flex-wrap items-stretch gap-4 lg:flex-col lg:items-stretch">
-            <div className="min-w-[130px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center lg:flex-initial">
+          <div className="grid min-w-0 grid-cols-2 gap-3 lg:flex lg:flex-col lg:items-stretch lg:gap-4">
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white px-4 py-3 text-left shadow-sm lg:min-w-[130px] lg:flex-initial lg:text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Completion</p>
               <p className="mt-1 text-2xl font-bold tabular-nums text-slate-900">{progressPercent}%</p>
             </div>
-            <div className="min-w-[130px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center lg:flex-initial">
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white px-4 py-3 text-left shadow-sm lg:min-w-[130px] lg:flex-initial lg:text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Active step</p>
               <p className="mt-1 text-lg font-bold tabular-nums text-slate-900">
                 {step + 1}
@@ -818,7 +814,7 @@ function CreateSchoolPage() {
             </div>
           </div>
           </div>
-          <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="mt-5 border-t border-slate-100 pt-4 sm:mt-6 sm:pt-5">
             <div className="mb-2 flex justify-between text-xs font-medium text-slate-500">
               <span>Overall progress</span>
               <span className="tabular-nums">{progressPercent}%</span>
@@ -833,20 +829,27 @@ function CreateSchoolPage() {
         </div>
       </header>
 
-      <div className="relative grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
-        <aside className="order-2 lg:order-1 lg:col-span-4 xl:col-span-3" aria-label="Workflow steps">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
-            <div className="p-4 sm:p-5 lg:sticky lg:top-20">
+      <div className="relative grid min-w-0 max-w-full grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12 lg:gap-8">
+        <aside className="order-1 min-w-0 max-w-full lg:col-span-4 xl:col-span-3" aria-label="Workflow steps">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm lg:sticky lg:top-20 lg:z-10">
+            <div className="min-w-0 p-3 sm:p-5">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
                   <ListOrdered className="h-4 w-4" strokeWidth={2} aria-hidden />
                 </span>
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">Workflow</h2>
-                  <p className="text-xs text-slate-500">Select a section</p>
+                  <p className="text-xs text-slate-500 lg:hidden">Swipe steps · tap to open</p>
+                  <p className="hidden text-xs text-slate-500 lg:block">Select a section</p>
                 </div>
               </div>
-              <ol className="mt-4 space-y-2">
+              <div className="mt-3 flex gap-1 lg:hidden" aria-hidden>
+                {STEPS.map((_, i) => (
+                  <span key={i} className={`h-1.5 flex-1 rounded-full ${i <= step ? "bg-brand-600" : "bg-slate-200"}`} />
+                ))}
+              </div>
+              <div className="mt-3 min-w-0 overflow-hidden lg:mt-4">
+              <ol className="sidebar-thin-scrollbar flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] lg:block lg:snap-none lg:space-y-2 lg:overflow-visible lg:pb-0">
                 {STEPS.map((s, i) => {
                   const Icon = s.icon;
                   const completed = i < step;
@@ -859,28 +862,29 @@ function CreateSchoolPage() {
                         type="button"
                         onClick={() => goToStep(i)}
                         disabled={locked}
-                        className={`flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition ${railClass}`}
+                        className={`flex w-[min(78vw,220px)] shrink-0 snap-start flex-row items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition sm:w-[min(100%,240px)] lg:min-h-0 lg:w-full lg:shrink lg:flex-row lg:items-start lg:gap-3 lg:rounded-xl lg:px-3 lg:py-3 ${railClass}`}
                       >
                         <span
-                          className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm ${
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg shadow-sm lg:h-10 lg:w-10 lg:rounded-xl ${
                             active ? "bg-brand-600 text-white" : completed ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
                           }`}
                         >
-                          {completed ? <Check className="h-5 w-5" strokeWidth={2.5} aria-hidden /> : <Icon className="h-5 w-5" strokeWidth={1.75} aria-hidden />}
+                          {completed ? <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden /> : <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />}
                         </span>
-                        <span className="min-w-0 pt-0.5">
-                          <span className="block text-[0.65rem] font-bold uppercase tracking-wider text-slate-500">Step {i + 1}</span>
-                          <span className={`block text-sm font-bold leading-snug ${active ? "text-slate-900" : "text-slate-700"}`}>{s.title}</span>
-                          <span className="mt-0.5 line-clamp-2 text-xs text-slate-500">{s.subtitle}</span>
+                        <span className="min-w-0">
+                          <span className="block text-[0.6rem] font-bold uppercase tracking-wider text-slate-500 sm:text-[0.65rem]">Step {i + 1}</span>
+                          <span className={`block text-sm font-bold leading-tight ${active ? "text-slate-900" : "text-slate-700"}`}>{s.title}</span>
+                          <span className="mt-0.5 hidden text-xs leading-snug text-slate-500 sm:line-clamp-2 lg:block">{s.subtitle}</span>
                         </span>
                       </button>
                     </li>
                   );
                 })}
               </ol>
+              </div>
             </div>
           </div>
-          <div className="mt-4 hidden rounded-2xl border border-cyan-200/70 bg-gradient-to-br from-cyan-50 via-white to-brand-50/40 p-4 text-sm leading-relaxed text-slate-700 shadow-md shadow-cyan-500/5 lg:block">
+          <div className="mt-3 rounded-xl border border-cyan-200/70 bg-gradient-to-br from-cyan-50 via-white to-brand-50/40 p-3 text-xs leading-relaxed text-slate-700 shadow-sm sm:mt-4 sm:rounded-2xl sm:p-4 sm:text-sm lg:shadow-md lg:shadow-cyan-500/5">
             <p className="font-semibold text-cyan-900">Tip</p>
             <p className="mt-1 text-xs text-slate-600">
               Validate each step with <span className="font-semibold text-brand-700">Continue</span> before submitting—this mirrors how
@@ -889,41 +893,41 @@ function CreateSchoolPage() {
           </div>
         </aside>
 
-        <div className="order-1 min-w-0 lg:order-2 lg:col-span-8 xl:col-span-9">
+        <div className="order-2 min-w-0 lg:col-span-8 xl:col-span-9">
           <form onSubmit={onSubmit} className="space-y-4">
-            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xl shadow-indigo-900/[0.08] ring-1 ring-slate-100/80">
-              <div className={`border-b border-slate-100 bg-slate-50/90 px-6 py-5 sm:px-8 sm:py-6`}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-indigo-900/[0.06] ring-1 ring-slate-100/80 sm:shadow-xl sm:rounded-2xl">
+              <div className="border-b border-slate-100 bg-slate-50/90 px-4 py-3.5 sm:px-8 sm:py-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-5">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-sm sm:rounded-xl">
                     <StepIcon className="h-6 w-6" strokeWidth={1.75} aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Section {step + 1} of {STEPS.length}</p>
-                    <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{stepMeta.title}</h2>
-                    <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">{stepMeta.subtitle}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 sm:text-[11px] sm:tracking-[0.24em]">Section {step + 1} of {STEPS.length}</p>
+                    <h2 className="mt-1 text-lg font-bold tracking-tight text-slate-900 sm:text-2xl">{stepMeta.title}</h2>
+                    <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600 sm:mt-1.5 sm:leading-relaxed">{stepMeta.subtitle}</p>
                   </div>
                 </div>
               </div>
-              <div className="border-t border-slate-100 bg-gradient-to-b from-slate-50/60 to-white p-6 sm:p-8">{renderStepFields()}</div>
+              <div className="border-t border-slate-100 bg-gradient-to-b from-slate-50/60 to-white p-3 sm:p-8">{renderStepFields()}</div>
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-4 py-3 shadow-[0_-8px_32px_-8px_rgba(15,23,42,0.12)] backdrop-blur-md sm:px-6 md:left-64">
-              <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-center text-xs text-slate-600 sm:text-left">
-                  <span className="bg-gradient-to-r from-violet-600 to-brand-600 bg-clip-text font-bold text-transparent">{stepMeta.title}</span>
+            <div className="fixed bottom-0 left-0 right-0 z-40 max-w-[100vw] border-t border-slate-200/90 bg-white/95 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_32px_-8px_rgba(15,23,42,0.12)] backdrop-blur-md sm:px-6 md:left-64">
+              <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <p className="min-w-0 text-center text-xs leading-5 text-slate-600 sm:text-left">
+                  <span className="font-bold text-brand-700">{stepMeta.title}</span>
                   <span className="text-slate-400"> · </span>
                   {Object.keys(validateStep(step, form)).length === 0 ? (
-                    <span className="text-emerald-700">Section valid — ready to continue.</span>
+                    <span className="text-emerald-700">Ready to continue</span>
                   ) : (
-                    <span className="text-amber-700">Complete required fields to proceed.</span>
+                    <span className="text-amber-700">Complete required fields</span>
                   )}
                 </p>
-                <div className="flex justify-center gap-2 sm:justify-end">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
                   <button
                     type="button"
                     onClick={goBack}
                     disabled={step === 0}
-                    className={`inline-flex ${INPUT_H} items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40`}
+                    className={`inline-flex ${INPUT_H} items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 sm:rounded-xl sm:px-5`}
                   >
                     <ArrowLeft className="h-4 w-4" aria-hidden />
                     Back
@@ -932,7 +936,7 @@ function CreateSchoolPage() {
                     <button
                       type="button"
                       onClick={goNext}
-                      className={`inline-flex ${INPUT_H} items-center gap-2 rounded-xl bg-brand-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700`}
+                      className={`inline-flex ${INPUT_H} items-center justify-center gap-2 rounded-2xl bg-brand-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-brand-700 sm:rounded-xl sm:px-6`}
                     >
                       Continue
                       <ArrowRight className="h-4 w-4" aria-hidden />
@@ -941,7 +945,7 @@ function CreateSchoolPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className={`inline-flex ${INPUT_H} items-center gap-2 rounded-xl bg-emerald-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60`}
+                      className={`col-span-1 inline-flex ${INPUT_H} items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60 sm:rounded-xl sm:px-6`}
                     >
                       {loading ? "Creating…" : "Create school"}
                       <Check className="h-4 w-4" aria-hidden />

@@ -36,11 +36,11 @@ function DashboardLayout() {
         onClose={() => setMobileNavOpen(false)}
       />
       <div
-        className="h-full md:pl-[var(--erp-sidebar-width,16rem)]"
+        className="h-full min-w-0 overflow-x-hidden md:pl-[var(--erp-sidebar-width,16rem)]"
         style={compactSidebar ? { "--erp-sidebar-width": "13rem" } : undefined}
       >
         <Navbar onOpenMobileNav={() => setMobileNavOpen(true)} mobileNavOpen={mobileNavOpen} />
-        <main className="h-screen overflow-y-auto px-4 pb-4 pt-20 md:px-6 md:pb-6 md:pt-24">
+        <main className="h-screen overflow-x-hidden overflow-y-auto px-4 pb-4 pt-20 md:px-6 md:pb-6 md:pt-24">
           {showGlobalBanner ? <GlobalAnnouncementBanner /> : null}
           <Outlet />
         </main>

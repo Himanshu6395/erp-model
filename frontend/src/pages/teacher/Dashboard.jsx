@@ -70,6 +70,7 @@ function ListRow({ children, tone = "slate" }) {
 function TeacherDashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+  const { displayName, avatarUrl } = useTeacherProfile();
 
   useEffect(() => {
     const run = async () => {

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Mail, MapPin, Menu, Phone, X } from "lucide-react";
 import { LANDING_PRIMARY_LINKS } from "../data/landingNav";
+import { SITE_BRAND, SITE_CONTACT } from "../config/siteContact";
 
 function LandingHeader() {
   const [navOpen, setNavOpen] = useState(false);
@@ -34,7 +35,7 @@ function LandingHeader() {
             </div>
             <div className="flex flex-col items-start">
               <span className="bg-gradient-to-r from-white to-white/85 bg-clip-text text-lg font-bold tracking-tight text-transparent">
-                NexusCRM
+                {SITE_BRAND.name}
               </span>
               <span className="hidden text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-teal-300/90 sm:block">
                 School ERP
@@ -56,6 +57,53 @@ function LandingHeader() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <div className="group relative hidden lg:block">
+              <button
+                type="button"
+                className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs font-semibold text-white/90 transition hover:border-white/25 hover:bg-white/[0.1]"
+              >
+                <Phone className="h-3.5 w-3.5 text-cyan-300" />
+                Contact
+              </button>
+
+              <div className="absolute right-0 top-full mt-3 hidden w-80 rounded-3xl border border-white/10 bg-gray-950/95 p-4 shadow-2xl shadow-black/40 backdrop-blur-xl group-focus-within:block group-hover:block">
+                <div className="space-y-3 text-sm">
+                  <a
+                    href={SITE_CONTACT.phoneHref}
+                    className="flex items-start gap-3 rounded-2xl px-3 py-2.5 text-white/80 transition hover:bg-white/[0.06] hover:text-white"
+                  >
+                    <Phone className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" />
+                    <span>
+                      <span className="block text-[0.68rem] uppercase tracking-[0.2em] text-white/40">Call</span>
+                      {SITE_CONTACT.phoneDisplay}
+                    </span>
+                  </a>
+                  <a
+                    href={SITE_CONTACT.mailtoHref}
+                    className="flex items-start gap-3 rounded-2xl px-3 py-2.5 text-white/80 transition hover:bg-white/[0.06] hover:text-white"
+                  >
+                    <Mail className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
+                    <span>
+                      <span className="block text-[0.68rem] uppercase tracking-[0.2em] text-white/40">Email</span>
+                      {SITE_CONTACT.email}
+                    </span>
+                  </a>
+                  <a
+                    href={SITE_CONTACT.addressHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-start gap-3 rounded-2xl px-3 py-2.5 text-white/80 transition hover:bg-white/[0.06] hover:text-white"
+                  >
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                    <span>
+                      <span className="block text-[0.68rem] uppercase tracking-[0.2em] text-white/40">Visit</span>
+                      {SITE_CONTACT.addressLine}
+                    </span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
             <Link
               to="/login"
               className="hidden rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white/90 shadow-sm transition hover:border-white/35 hover:bg-white/10 sm:inline-flex"
@@ -110,6 +158,25 @@ function LandingHeader() {
             >
               Get Started
             </Link>
+            <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white/80">
+              <a href={SITE_CONTACT.phoneHref} className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white/[0.08]">
+                <Phone className="h-4 w-4 text-cyan-300" />
+                {SITE_CONTACT.phoneDisplay}
+              </a>
+              <a href={SITE_CONTACT.mailtoHref} className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white/[0.08]">
+                <Mail className="h-4 w-4 text-red-300" />
+                {SITE_CONTACT.email}
+              </a>
+              <a
+                href={SITE_CONTACT.addressHref}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-start gap-3 rounded-xl px-2 py-2 transition hover:bg-white/[0.08]"
+              >
+                <MapPin className="mt-0.5 h-4 w-4 text-emerald-300" />
+                <span>{SITE_CONTACT.addressLine}</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>

@@ -56,6 +56,7 @@ import AdminNoticeManagementLayout from "../layouts/AdminNoticeManagementLayout"
 import AdminExamManagementLayout from "../layouts/AdminExamManagementLayout";
 import AdminTransportManagementLayout from "../layouts/AdminTransportManagementLayout";
 import AdminInquiryLayout from "../layouts/AdminInquiryLayout";
+import AdminLibraryManagementLayout from "../layouts/AdminLibraryManagementLayout";
 import InquiryListPage from "../pages/admin/inquiries/InquiryListPage";
 import InquiryCreatePage from "../pages/admin/inquiries/InquiryCreatePage";
 import InquiryAnalyticsPage from "../pages/admin/inquiries/InquiryAnalyticsPage";
@@ -74,6 +75,15 @@ import AttendanceManagementPage from "../pages/admin/AttendanceManagement";
 import TeacherLeaveRequestsPage from "../pages/admin/TeacherLeaveRequests";
 import FeesManagementPage from "../pages/admin/FeesManagement";
 import ModulePlaceholder from "../pages/admin/ModulePlaceholder";
+import LibraryDashboardPage from "../pages/admin/library/LibraryDashboardPage";
+import LibraryBooksPage from "../pages/admin/library/LibraryBooksPage";
+import LibraryCategoriesPage from "../pages/admin/library/LibraryCategoriesPage";
+import LibraryIssuedBooksPage from "../pages/admin/library/LibraryIssuedBooksPage";
+import LibraryReturnBooksPage from "../pages/admin/library/LibraryReturnBooksPage";
+import LibraryFineManagementPage from "../pages/admin/library/LibraryFineManagementPage";
+import LibraryStudentRequestsPage from "../pages/admin/library/LibraryStudentRequestsPage";
+import LibraryReportsPage from "../pages/admin/library/LibraryReportsPage";
+import LibrarySettingsPage from "../pages/admin/library/LibrarySettingsPage";
 import TimetableManagementPage from "../pages/admin/TimetableManagement";
 import RegisteredTimetablePage from "../pages/admin/RegisteredTimetable";
 import ExamsResultsManagementPage from "../pages/admin/ExamsResultsManagement";
@@ -246,10 +256,18 @@ function AppRoutes() {
             path="/admin/homework"
             element={<ModulePlaceholder title="Homework / Assignments" description="Assign homework, upload files and track student submissions." />}
           />
-          <Route
-            path="/admin/library"
-            element={<ModulePlaceholder title="Library Management" description="Add books, issue/return flow and fines tracking." />}
-          />
+          <Route path="/admin/library" element={<AdminLibraryManagementLayout />}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<LibraryDashboardPage />} />
+            <Route path="books" element={<LibraryBooksPage />} />
+            <Route path="categories" element={<LibraryCategoriesPage />} />
+            <Route path="issued" element={<LibraryIssuedBooksPage />} />
+            <Route path="returns" element={<LibraryReturnBooksPage />} />
+            <Route path="fines" element={<LibraryFineManagementPage />} />
+            <Route path="requests" element={<LibraryStudentRequestsPage />} />
+            <Route path="reports" element={<LibraryReportsPage />} />
+            <Route path="settings" element={<LibrarySettingsPage />} />
+          </Route>
           <Route path="/admin/transport" element={<AdminTransportManagementLayout />}>
             <Route index element={<Navigate to="create" replace />} />
             <Route path="create" element={<TransportManagementPage />} />
